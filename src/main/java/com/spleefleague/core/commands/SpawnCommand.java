@@ -7,7 +7,7 @@
 package com.spleefleague.core.commands;
 
 import com.spleefleague.core.command.CommandTemplate;
-import com.spleefleague.core.annotation.CommandAnnotation;
+import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.error.CoreError;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;

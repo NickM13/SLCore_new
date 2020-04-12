@@ -6,13 +6,12 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.Core;
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.LiteralArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
-import com.spleefleague.core.request.Request;
+import com.spleefleague.core.request.RequestManager;
 
 /**
  * @author NickM13
@@ -27,11 +26,8 @@ public class RequestCommand extends CommandTemplate {
     @CommandAnnotation(hidden=true)
     public void requestAccept(CorePlayer sender,
             @LiteralArg(value="accept") String test,
-            String player) {
-        CorePlayer cp;
-        if ((cp = Core.getInstance().getPlayers().get(player)) != null) {
-            Request.acceptRequest(sender, cp);
-        } else {
+            String target) {
+        if (!RequestManager.acceptRequest(sender, target)) {
             error(sender, "No pending request");
         }
     }
@@ -39,11 +35,8 @@ public class RequestCommand extends CommandTemplate {
     @CommandAnnotation(hidden=true)
     public void requestDecline(CorePlayer sender,
             @LiteralArg(value="decline") String test,
-            String player) {
-        CorePlayer cp;
-        if ((cp = Core.getInstance().getPlayers().get(player)) != null) {
-            Request.declineRequest(sender, cp);
-        } else {
+            String target) {
+        if (!RequestManager.declineRequest(sender, target)) {
             error(sender, "No pending request");
         }
     }

@@ -6,14 +6,14 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
+import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.error.CoreError;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
 import org.bukkit.command.CommandSender;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.OptionArg;
 
 /**
  * @author NickM13

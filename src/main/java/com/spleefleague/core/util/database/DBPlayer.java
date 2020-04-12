@@ -16,12 +16,15 @@ import com.spleefleague.core.player.BattleState;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.PregameState;
 import com.spleefleague.core.plugin.CorePlugin;
+import com.spleefleague.core.util.Warp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -164,8 +167,8 @@ public class DBPlayer<B extends Battle> extends DBEntity {
         pregameState.save(PregameState.PSFlag.ALL);
     }
 
-    public void loadPregameState() {
-        pregameState.load();
+    public void loadPregameState(@Nullable Location arenaLoc) {
+        pregameState.load(arenaLoc);
     }
     
 }

@@ -6,9 +6,9 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.HelperArg;
-import com.spleefleague.core.annotation.LiteralArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.HelperArg;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
@@ -17,7 +17,7 @@ import com.spleefleague.core.vendor.VendorItem;
 import java.util.Iterator;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.OptionArg;
 import com.spleefleague.core.menu.InventoryMenuAPI;
 import com.spleefleague.core.menu.InventoryMenuContainer;
 import com.spleefleague.core.menu.InventoryMenuItem;

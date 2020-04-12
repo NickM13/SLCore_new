@@ -186,7 +186,7 @@ public class GameListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockBreak(BlockBreakEvent e) {
         CorePlayer cp = Core.getInstance().getPlayers().get(e.getPlayer());
-        if (!cp.canBuild()) {
+        if (!cp.canBreak()) {
             e.setCancelled(true);
         } else {
             e.setDropItems(false);
@@ -208,11 +208,6 @@ public class GameListener implements Listener {
         if (CorePlugin.isInBattleGlobal(e.getPlayer())) {
             //e.setCancelled(true);
         }
-    }
-    
-    @EventHandler
-    public void onBlockExplode(BlockExplodeEvent e) {
-        e.setCancelled(true);
     }
     
     @EventHandler

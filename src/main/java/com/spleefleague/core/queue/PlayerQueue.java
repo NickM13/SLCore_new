@@ -70,6 +70,7 @@ public class PlayerQueue {
     }
     
     private int findPlayer(DBPlayer dbp) {
+        // Probably rework this at some point?
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).dbp.getPlayer().getName().equals(dbp.getPlayer().getName())) {
                 return i;
@@ -92,6 +93,7 @@ public class PlayerQueue {
         Core.getInstance().sendMessage(dbp, "You have joined the queue for " +
                 Chat.GAMEMODE + this.name);
         players.add(new QueuePlayer(dbp, null));
+        checkQueue();
         return true;
     }
     public boolean queuePlayer(DBPlayer dbp, Arena arena) {
@@ -130,6 +132,7 @@ public class PlayerQueue {
                 Chat.BRACE + ")");
         players.add(new QueuePlayer(dbp, arena));
         arena.incrementQueues();
+        checkQueue();
         return true;
     }
     

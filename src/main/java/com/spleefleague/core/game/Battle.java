@@ -49,6 +49,7 @@ public class Battle<P extends DBPlayer, A extends Arena> {
     
     // Some values of Arena that can be modified without changing the arena
     protected List<Dimension> borders = new ArrayList<>();
+    protected List<Dimension> spectatorBorders = new ArrayList<>();
     protected Dimension area;
     protected List<Location> spawns = new ArrayList<>();
     
@@ -81,6 +82,7 @@ public class Battle<P extends DBPlayer, A extends Arena> {
         this.arena.incrementMatches();
         for (Dimension border : arena.getBorders()) {
             this.borders.add(border);
+            this.spectatorBorders.add(border.expand(20));
         }
         this.area = arena.getArea();
         for (Location spawn : arena.getSpawns()) {
@@ -97,6 +99,16 @@ public class Battle<P extends DBPlayer, A extends Arena> {
     
     public CorePlugin getPlugin() {
         return plugin;
+    }
+    
+    public void addBattler(DBPlayer dbp) {
+        P p = (P) plugin.getPlayers().get(dbp);
+        players.add(p);
+    }
+    
+    public void removeBattler(DBPlayer dbp) {
+        P p = (P) plugin.getPlayers().get(dbp);
+        players.remove(p);
     }
     
     protected void setupPlayers() {
@@ -147,23 +159,46 @@ public class Battle<P extends DBPlayer, A extends Arena> {
         return false;
     }
     
+    protected boolean isInSpectatorBorder(P p) {
+        for (Dimension border : spectatorBorders) {
+            if (border.isContained(new Point(p.getPlayer().getLocation()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     protected boolean isInArea(P p) {
         return area.isContained(new Point(p.getPlayer().getLocation()));
     }
     
+    public P getClosestBattler(P p) {
+        return players.iterator().next();
+    }
+    
+    public boolean isFallen(P p) {
+        return false;
+    }
+    
     public void onMove(P p, PlayerMoveEvent e) {
         if (p.getBattleState() == BattleState.BATTLER) {
-            if (!isRoundStarted()) {
-                if (e.getFrom().getY() != e.getTo().getY()) {
-                    e.getPlayer().teleport(new Location(e.getFrom().getWorld(),
-                            e.getTo().getX(),
-                            e.getFrom().getY(),
-                            e.getTo().getZ(),
-                            e.getTo().getYaw(),
-                            e.getTo().getPitch()));
+            if (!p.getBattle().isFallen(p)) {
+                if (!isRoundStarted()) {
+                    if (e.getFrom().getY() != e.getTo().getY()) {
+                        e.getPlayer().teleport(new Location(e.getFrom().getWorld(),
+                                e.getTo().getX(),
+                                e.getFrom().getY(),
+                                e.getTo().getZ(),
+                                e.getTo().getYaw(),
+                                e.getTo().getPitch()));
+                    }
+                } else if (e.getPlayer().getLocation().getBlock().isLiquid() || !isInBorder(p)) {
+                    failPlayer(p);
                 }
-            } else if (e.getPlayer().getLocation().getBlock().isLiquid() || !isInBorder(p)) {
-                failPlayer(p);
+            } else {
+                if (!isInSpectatorBorder(p)) {
+                    e.setTo(getClosestBattler(p).getPlayer().getLocation());
+                }
             }
         } else if (p.getBattleState() == BattleState.SPECTATOR) {
             if (!p.getPlayer().getGameMode().equals(GameMode.CREATIVE) && arena.hasTpBackSpectators() && (isInBorder(p)/* || !isInArea(p)*/)) {
@@ -224,7 +259,7 @@ public class Battle<P extends DBPlayer, A extends Arena> {
     
     public void endBattle() {
         for (P p : players) {
-            p.loadPregameState();
+            p.loadPregameState(arena.getPostGameWarp());
             p.leaveBattle();
             chatGroup.removePlayer(p);
         }
@@ -251,7 +286,8 @@ public class Battle<P extends DBPlayer, A extends Arena> {
     public void requestPlayTo(P p) { }
     public void requestPlayTo(P p, int playTo) { }
     
-    protected void resetPlayers() {}
+    protected void resetPlayer(P p) { }
+    protected void resetPlayers() { }
     
     public void addSpectator(P dbp, P target) {
         if (!players.contains(dbp)) {
@@ -281,7 +317,7 @@ public class Battle<P extends DBPlayer, A extends Arena> {
             chatGroup.removePlayer(dbp);
             if (dbp.getPlayer().getGameMode().equals(GameMode.SPECTATOR))
                 dbp.getPlayer().setSpectatorTarget(null);
-            dbp.loadPregameState();
+            dbp.loadPregameState(arena.getPostGameWarp());
             gameWorld.removePlayer(dbp.getPlayer());
         }
     }
@@ -350,8 +386,12 @@ public class Battle<P extends DBPlayer, A extends Arena> {
         
     }
     
+    public void updateField() {
+        
+    }
+    
     public void updateExperience() {
-        chatGroup.setExperience((float)(getRoundTime() % 1), (int)(getRoundTime()));
+        //chatGroup.setExperience((float)(getRoundTime() % 1), (int)(getRoundTime()));
     }
     
     public void releasePlayers() {

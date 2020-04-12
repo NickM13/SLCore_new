@@ -6,9 +6,9 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.LiteralArg;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.LiteralArg;
+import com.spleefleague.core.command.OptionArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.error.CoreError;
 import com.spleefleague.core.game.Leaderboard;

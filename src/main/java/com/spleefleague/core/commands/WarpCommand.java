@@ -6,7 +6,8 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
+import com.spleefleague.core.Core;
+import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.error.CoreError;
@@ -14,8 +15,7 @@ import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
 import com.spleefleague.core.util.Warp;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.OptionArg;
 
 /**
  * @author NickM13
@@ -25,12 +25,12 @@ public class WarpCommand extends CommandTemplate {
     public WarpCommand() {
         super(WarpCommand.class, "warp", Rank.MODERATOR, Rank.BUILDER);
         setUsage("/warp [name]");
-        setOptions("warpList", (cp) -> Warp.getWarpNames());
+        setOptions("warpList", (cp) -> Warp.getWarpNames(cp));
     }
     
     private void printWarps(CorePlayer sender) {
         sender.sendMessage(Chat.fillTitle("[ List of Warps ]"));
-        sender.getPlayer().spigot().sendMessage(Warp.getWarpsFormatted());
+        sender.sendMessage(Warp.getWarpsFormatted(sender.getRank()));
     }
     
     @CommandAnnotation

@@ -136,6 +136,7 @@ public class GameWorld {
             while (pit.hasNext()) {
                 GameProjectile projectile = pit.next().getValue();
                 List<RaycastResult> result = projectile.cast();
+                projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(projectile.getDrag()));
                 for (RaycastResult rr : result) {
                     if (fakeBlocks.containsKey(rr.blockPos)) {
                         FakeBlock fb = fakeBlocks.get(rr.blockPos);
@@ -144,19 +145,24 @@ public class GameWorld {
                             projectile.bounce();
                             if (!projectile.hasBounces()) {
                                 projectile.getEntity().remove();
+                                break;
                             } else {
-                                projectile.getEntity().teleport(new Location(projectile.getEntity().getWorld(),
-                                        rr.intersection.getX(),
-                                        rr.intersection.getY(),
-                                        rr.intersection.getZ()));
-                                projectile.setLastLoc();
-                                switch (rr.axis) {
-                                    case 1: projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(new Vector(-projectile.getBouncePower(), 1.0, 1.0))); break;
-                                    case 2: projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(new Vector(1.0, -projectile.getBouncePower(), 1.0))); break;
-                                    case 3: projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(new Vector(1.0, 1.0, -projectile.getBouncePower()))); break;
+                                if (projectile.doesBounce()) {
+                                    projectile.getEntity().teleport(new Location(projectile.getEntity().getWorld(),
+                                            rr.intersection.getX(),
+                                            rr.intersection.getY(),
+                                            rr.intersection.getZ()));
+                                    projectile.setLastLoc();
+                                    switch (rr.axis) {
+                                        case 1: projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(new Vector(-projectile.getBouncePower(), 1.0, 1.0))); break;
+                                        case 2: projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(new Vector(1.0, -projectile.getBouncePower(), 1.0))); break;
+                                        case 3: projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(new Vector(1.0, 1.0, -projectile.getBouncePower()))); break;
+                                    }
+                                    break;
+                                } else {
+                                    projectile.getEntity().setVelocity(projectile.getEntity().getVelocity().multiply(-projectile.getBouncePower()));
                                 }
                             }
-                            break;
                         }
                     }
                 }
@@ -303,30 +309,33 @@ public class GameWorld {
     public void shootProjectile(Player p, FakeProjectile projectileType) {
         Location handLocation = p.getEyeLocation().clone().add(p.getLocation().getDirection().crossProduct(new Vector(0, 1, 0)).normalize().multiply(0.15).add(new Vector(0, -0.15, 0)));
         
-        Consumer<? extends Entity> consumer = (Entity e) -> {
-            GameProjectile fp = new GameProjectile(e, projectileType);
-            projectiles.put(e.getEntityId(), fp);
-        };
-        Entity entity;
-        switch (projectileType.entityType) {
-            default:
-                entity = world.spawn(handLocation, projectileType.entityType.getEntityClass(), (Consumer) consumer);
-                break;
+        for (int i = 0; i < projectileType.count; i++) {
+            Consumer<? extends Entity> consumer = (Entity e) -> {
+                GameProjectile fp = new GameProjectile(e, projectileType);
+                projectiles.put(e.getEntityId(), fp);
+            };
+            Entity entity;
+            switch (projectileType.entityType) {
+                default:
+                    entity = world.spawn(handLocation, projectileType.entityType.getEntityClass(), (Consumer) consumer);
+                    break;
+            }
+            projectiles.get(entity.getEntityId()).setShooter(p);
+            Random rand = new Random();
+            entity.setVelocity(p.getLocation()
+                    .getDirection()
+                    .add(new Vector(
+                            (rand.nextDouble() - 0.5) * projectileType.spread,
+                            (rand.nextDouble() - 0.5) * projectileType.spread,
+                            (rand.nextDouble() - 0.5) * projectileType.spread))
+                    .normalize().multiply(projectileType.range * 0.25));
+            entity.setGravity(projectileType.gravity);
         }
-        projectiles.get(entity.getEntityId()).setShooter(p);
-        Random rand = new Random();
-        entity.setVelocity(p.getLocation()
-                .getDirection()
-                .add(new Vector(
-                        (rand.nextDouble() - 0.5) * projectileType.spread,
-                        (rand.nextDouble() - 0.5) * projectileType.spread,
-                        (rand.nextDouble() - 0.5) * projectileType.spread))
-                .normalize().multiply(projectileType.range * 0.25));
-        entity.setGravity(projectileType.gravity);
-        
         players.keySet().forEach(player -> {
             player.playSound(p.getLocation(), Sound.ENTITY_SNOWBALL_THROW, 1, 1);
         });
+        
+        //p.setVelocity(p.getVelocity().clone().add(p.getLocation().clone().getDirection().multiply(-projectileType.knockback)));
     }
     
     public void doFailBlast(Player p) {

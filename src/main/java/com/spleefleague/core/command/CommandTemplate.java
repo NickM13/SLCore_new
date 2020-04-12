@@ -7,10 +7,6 @@
 package com.spleefleague.core.command;
 
 import com.spleefleague.core.Core;
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.HelperArg;
-import com.spleefleague.core.annotation.LiteralArg;
-import com.spleefleague.core.annotation.NumberArg;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.error.CoreError;
 import com.spleefleague.core.player.CorePlayer;
@@ -40,7 +36,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import com.spleefleague.core.annotation.OptionArg;
 import com.spleefleague.core.util.TpCoord;
 import com.spleefleague.core.util.database.DBPlayer;
 import net.minecraft.server.v1_15_R1.CommandListenerWrapper;
@@ -585,7 +580,8 @@ public class CommandTemplate extends Command {
                                 invalidArg = true;
                                 Set<String> options2 = this.getOptions(((OptionArg) param.getAnnotation(OptionArg.class)).listName(), cp);
                                 for (String o : options2) {
-                                    if (o.equalsIgnoreCase(arg)) {
+                                    if (o.equalsIgnoreCase(arg)
+                                            || o.contains(":") && o.split(":")[1].equalsIgnoreCase(arg)) {
                                         arg = o;
                                         invalidArg = false;
                                         break;
@@ -842,10 +838,12 @@ public class CommandTemplate extends Command {
     private boolean optionSelected;
     
     private void addOption(List<String> options, String option, String arg, boolean forceLower) {
-        if (option.equalsIgnoreCase(arg)) {
+        if (option.equalsIgnoreCase(arg)
+                || (option.contains(":") && option.split(":")[1].equalsIgnoreCase(arg))) {
             options.clear();
             optionSelected = true;
-        } else if (option.toUpperCase().startsWith(arg.toUpperCase())) {
+        } else if (option.toUpperCase().startsWith(arg.toUpperCase())
+                || (option.contains(":") && option.toUpperCase().split(":")[1].startsWith(arg.toUpperCase()))) {
             if (forceLower) {
                 options.add(option.toLowerCase());
             } else {

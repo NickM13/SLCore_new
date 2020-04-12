@@ -153,7 +153,7 @@ public class Rank extends DBEntity {
     }
     
     public static Rank getRank(String name) {
-        if (!ranks.containsKey(name.toUpperCase())) return null;
+        if (name == null || !ranks.containsKey(name.toUpperCase())) return null;
         return ranks.get(name.toUpperCase());
     }
     

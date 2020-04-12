@@ -68,7 +68,7 @@ public class Arena extends DBEntity {
     protected List<Location> spawns = new ArrayList<>();
     @DBField
     protected Boolean tpBackSpectators;
-    protected Location spectatorSpawn;
+    protected Location spectatorSpawn = null;
     
     // Border is used for boundaries of match
     protected List<Dimension> border = new ArrayList<>();
@@ -231,6 +231,10 @@ public class Arena extends DBEntity {
                 .setAction(queueAction);
     }
     
+    public Location getPostGameWarp() {
+        return spectatorSpawn;
+    }
+    
     public static Map<String, Arena> getUnpausedArenas(ArenaMode mode) {
         if (!ARENAS.containsKey(mode))
             return Collections.EMPTY_MAP;
@@ -325,12 +329,12 @@ public class Arena extends DBEntity {
             try {
                 Arena arena = mode.getArenaClass().newInstance();
                 arena.load(adoc);
-                System.out.println(arena.getName());
                 arena.getMode().addRequiredTeamSize(arena.getTeamSize());
                 ARENAS.get(mode).put(arena.getName().toLowerCase(), arena);
                 successCounter++;
             } catch (InstantiationException | IllegalAccessException ex) {
                 Logger.getLogger(Arena.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
         return successCounter;

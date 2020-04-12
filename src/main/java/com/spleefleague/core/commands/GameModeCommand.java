@@ -6,10 +6,10 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.HelperArg;
-import com.spleefleague.core.annotation.NumberArg;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.HelperArg;
+import com.spleefleague.core.command.NumberArg;
+import com.spleefleague.core.command.OptionArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.player.CorePlayer;

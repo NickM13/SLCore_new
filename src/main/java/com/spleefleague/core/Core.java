@@ -20,6 +20,7 @@ import com.spleefleague.core.chat.ticket.Ticket;
 import com.spleefleague.core.chat.ticket.TicketManager;
 import com.spleefleague.core.command.CommandManager;
 import com.spleefleague.core.command.CommandTemplate;
+import com.spleefleague.core.credits.Credits;
 import com.spleefleague.core.game.Leaderboard;
 import com.spleefleague.core.infraction.Infraction;
 import com.spleefleague.core.listener.*;
@@ -34,13 +35,14 @@ import com.spleefleague.core.menus.OptionsMenu;
 import com.spleefleague.core.menus.ProfileMenu;
 import com.spleefleague.core.party.Party;
 import com.spleefleague.core.player.CorePlayer;
+import com.spleefleague.core.player.CorePlayerOptions;
 import com.spleefleague.core.player.PlayerManager;
 import com.spleefleague.core.player.Rank;
 import com.spleefleague.core.plugin.CorePlugin;
 import com.spleefleague.core.queue.PlayerQueue;
 import com.spleefleague.core.queue.QueueManager;
 import com.spleefleague.core.queue.QueueRunnable;
-import com.spleefleague.core.request.Request;
+import com.spleefleague.core.request.RequestManager;
 import com.spleefleague.core.util.Warp;
 import com.spleefleague.core.util.database.DBPlayer;
 import com.spleefleague.core.vendor.KeyItem;
@@ -92,6 +94,7 @@ public class Core extends CorePlugin<CorePlayer> {
         protocolManager = ProtocolLibrary.getProtocolManager();
         
         initMongo();
+        Credits.init();
         Rank.init();
         Chat.init();
         Warp.init();
@@ -99,6 +102,7 @@ public class Core extends CorePlugin<CorePlayer> {
         KeyItem.init();
         Vendor.init();
         InventoryMenuAPI.init();
+        CorePlayerOptions.init();
         
         // Initialize listeners
         Bukkit.getPluginManager().registerEvents(new AfkListener(), this);
@@ -132,7 +136,7 @@ public class Core extends CorePlugin<CorePlayer> {
                 cp.checkAfk();
                 cp.updateRank();
             }
-            Request.checkTimeouts();
+            RequestManager.checkTimeouts();
         }, 0L, 60L);
     }
 
@@ -349,7 +353,7 @@ public class Core extends CorePlugin<CorePlayer> {
         queueManager.initialize();
 
         qrunnable = new QueueRunnable();
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(getInstance(), qrunnable, 20L, 20L);
+        Bukkit.getScheduler().runTaskTimer(getInstance(), qrunnable, 0L, qrunnable.getDelayTicks());
     }
 
     public void addQueue(PlayerQueue queue) {

@@ -10,6 +10,7 @@ import com.spleefleague.core.menu.InventoryMenuAPI;
 import com.spleefleague.core.menu.InventoryMenuItem;
 import com.spleefleague.core.player.Rank;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -38,13 +39,36 @@ public class ModerativeMenu {
                                     for (PotionEffect pe : cp.getPlayer().getActivePotionEffects()) {
                                         cp.getPlayer().removePotionEffect(pe.getType());
                                     }
-                                    }));
+                                    })
+                            .setCloseOnAction(false));
             
             menuItem.getLinkedContainer()
                     .addMenuItem(InventoryMenuAPI.createItem()
                             .setName("Night Vision")
                             .setDisplayItem(InventoryMenuAPI.createCustomPotion(PotionType.NIGHT_VISION))
-                            .setAction(cp -> cp.getPlayer().addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(Integer.MAX_VALUE, 0))));
+                            .setAction(cp -> cp.getPlayer().addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(Integer.MAX_VALUE, 0)))
+                            .setCloseOnAction(false));
+            
+            menuItem.getLinkedContainer()
+                    .addMenuItem(InventoryMenuAPI.createItem()
+                            .setName("Command Block")
+                            .setDisplayItem(Material.COMMAND_BLOCK)
+                            .setAction(cp -> cp.getPlayer().getInventory().addItem(new ItemStack(Material.COMMAND_BLOCK)))
+                            .setCloseOnAction(false));
+            
+            menuItem.getLinkedContainer()
+                    .addMenuItem(InventoryMenuAPI.createItem()
+                            .setName("Repeating Command Block")
+                            .setDisplayItem(Material.REPEATING_COMMAND_BLOCK)
+                            .setAction(cp -> cp.getPlayer().getInventory().addItem(new ItemStack(Material.REPEATING_COMMAND_BLOCK)))
+                            .setCloseOnAction(false));
+            
+            menuItem.getLinkedContainer()
+                    .addMenuItem(InventoryMenuAPI.createItem()
+                            .setName("Barrier")
+                            .setDisplayItem(Material.BARRIER)
+                            .setAction(cp -> cp.getPlayer().getInventory().addItem(new ItemStack(Material.BARRIER)))
+                            .setCloseOnAction(false));
         }
         return menuItem;
     }

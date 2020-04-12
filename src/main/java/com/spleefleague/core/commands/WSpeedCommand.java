@@ -6,8 +6,8 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.LiteralArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
@@ -27,15 +27,15 @@ public class WSpeedCommand extends CommandTemplate {
     public void wspeed(CorePlayer sender, Double f) {
         f /= 10.;
         sender.getPlayer().setWalkSpeed(f.floatValue());
-        success(sender, "Fly speed set to " + f);
+        success(sender, "Walk speed set to " + f);
     }
     
     @CommandAnnotation
     public void wspeed(CorePlayer sender, CorePlayer cp, Double f) {
         f /= 10.;
         cp.getPlayer().setWalkSpeed(f.floatValue());
-        success(cp, "Fly speed set to " + f);
-        success(sender, "Fly speed of " + cp.getDisplayName() + " set to " + f);
+        success(cp, "Walk speed set to " + f);
+        success(sender, "Walk speed of " + cp.getDisplayName() + " set to " + f);
     }
     
     @CommandAnnotation

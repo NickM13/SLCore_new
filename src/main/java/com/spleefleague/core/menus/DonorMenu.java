@@ -9,6 +9,7 @@ package com.spleefleague.core.menus;
 import com.spleefleague.core.menu.InventoryMenuAPI;
 import com.spleefleague.core.menu.InventoryMenuItem;
 import com.spleefleague.core.player.Rank;
+import com.spleefleague.core.util.Warp;
 import org.bukkit.Material;
 
 /**
@@ -25,7 +26,7 @@ public class DonorMenu {
                     .setDisplayItem(Material.EMERALD)
                     .setDescription("Warps to the donations room")
                     .setAvailability(cp -> cp.getRank().hasPermission(Rank.DONOR_1))
-                    .setAction(cp -> { cp.sendMessage("Imagine you were just teleported somewhere!"); });
+                    .setAction(cp -> { cp.warp(Warp.getWarp("Donator")); });
         }
         return menuItem;
     }

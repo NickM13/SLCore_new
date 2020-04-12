@@ -7,8 +7,12 @@
 package com.spleefleague.core.player;
 
 import com.google.common.collect.Sets;
+import com.spleefleague.core.Core;
+import com.spleefleague.core.plugin.CorePlugin;
+import com.spleefleague.core.util.Warp;
 import com.spleefleague.core.util.database.DBPlayer;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -58,9 +62,23 @@ public class PregameState {
         inventory = null;
     }
     
-    public void load() {
+    public void load(@Nullable Location arenaLoc) {
         if (location != null) {
-            dbp.getPlayer().teleport(location);
+            CorePlayer cp = Core.getInstance().getPlayers().get(dbp);
+            switch (cp.getOptions().getOption(CorePlayerOptions.CPOptions.POST_GAME_WARP)) {
+                case 0:
+                    cp.gotoSpawn();
+                    break;
+                case 1:
+                    cp.teleport(location);
+                    break;
+                case 2:
+                    if (arenaLoc != null)
+                        cp.teleport(arenaLoc);
+                    else
+                        cp.teleport(location);
+                    break;
+            }
             location = null;
         }
         if (inventory != null) {

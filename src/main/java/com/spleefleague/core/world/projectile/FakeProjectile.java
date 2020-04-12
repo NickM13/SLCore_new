@@ -27,40 +27,26 @@ public class FakeProjectile extends DBEntity {
     @DBField
     public Integer bounces = 1;
     @DBField
+    public Double bounciness = 0.3;
+    @DBField
     public Integer lifeTicks = 100;
     @DBField
     public Double spread = 0.;
     @DBField
-    public Double drag = 0.;
+    public Double drag = 1.;
     @DBField
     public Boolean gravity = true;
     @DBField
     public Material material = Material.BARRIER;
     @DBField
     public Integer damage = 0;
+    @DBField
+    public Integer count = 1;
+    @DBField
+    public Double knockback = 0.;
     
     public FakeProjectile() {
         
     }
-    /*
-    public FakeProjectile(EntityType entityType, int range, int fireRate, int power, boolean gravity, int bounces, double bounciness) {
-        this.entityType = entityType;
-        this.range = range;
-        this.fireRate = fireRate;
-        this.power = power;
-        this.bounces = bounces;
-        this.gravity = gravity;
-    }
     
-    public FakeProjectile(int lifeTicks, EntityType entityType, int range, int fireRate, int power, boolean gravity, int bounces, double bounciness, double spread) {
-        this(entityType, range, fireRate, power, gravity, bounces, bounciness);
-        this.lifeTicks = lifeTicks;
-        this.spread = spread;
-    }
-    
-    public FakeProjectile(EntityType entityType, int range, int fireRate, int power, boolean gravity, int bounces, double bounciness, double spread) {
-        this(entityType, range, fireRate, power, gravity, bounces, bounciness);
-        this.spread = spread;
-    }
-    */
 }

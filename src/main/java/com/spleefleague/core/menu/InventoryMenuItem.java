@@ -6,6 +6,7 @@
 
 package com.spleefleague.core.menu;
 
+import com.google.common.collect.Lists;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
@@ -161,16 +162,20 @@ public class InventoryMenuItem {
         return minRank;
     }
     
+    protected List<String> getWrappedDescription(CorePlayer cp) {
+        if (descriptionFun != null) {
+            return Chat.wrapDescription("\n" + descriptionFun.apply(cp));
+        } else {
+            return Lists.newArrayList();
+        }
+    }
+    
     public ItemStack createItem(CorePlayer cp) {
         ItemStack item = displayItemFun.apply(cp);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Chat.MENU_NAME + nameFun.apply(cp));
         //meta.addAttributeModifier(Attribute.BACKGROUND_COLOR, AttributeModifier.deserialize(map));
-        if (descriptionFun != null) {
-            meta.setLore(Chat.wrapDescription("\n" + descriptionFun.apply(cp)));
-        } else {
-            meta.setLore(null);
-        }
+        meta.setLore(getWrappedDescription(cp));
         meta.addItemFlags(ItemFlag.values());
         item.setItemMeta(meta);
         return item;

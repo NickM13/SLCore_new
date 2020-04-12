@@ -26,12 +26,23 @@ public class GameProjectile {
     FakeProjectile type;
     int bounces = 1;
     double bouncePower = 0.3;
+    double drag = 1;
     
     public GameProjectile(Entity entity, FakeProjectile type) {
         this.entity = entity;
         this.type = type;
         this.lastLoc = entity.getBoundingBox().clone();
         this.bounces = type.bounces;
+        this.bouncePower = type.bounciness;
+        this.drag = type.drag;
+    }
+    
+    public double getDrag() {
+        return drag;
+    }
+    
+    public boolean doesBounce() {
+        return bouncePower > 0;
     }
     
     public void bounce() {

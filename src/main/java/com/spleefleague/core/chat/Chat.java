@@ -11,7 +11,6 @@ import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.util.database.DBPlayer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 import joptsimple.internal.Strings;
 import org.bukkit.ChatColor;
 
@@ -100,10 +99,15 @@ public class Chat {
             cc = ChatChannel.getDefaultChannel();
             cp.setChatChannel(cc);
         }
+        if (cp.getOptions().isChannelDisabled(cc.getName())) {
+            Core.sendMessageToPlayer(dbp, "You have " + cc.getName() + " muted!");
+            Core.sendMessageToPlayer(dbp, "To unmute, go to Menu->Options->Chat Channels");
+            return;
+        }
         msg = cc.formatMessage(cp, msg);
         for (CorePlayer cp1 : cc.getPlayers(cp)) {
-            if (cc.isAvailable(cp)
-                    && !cp1.isChannelDisabled(cc.getName())) {
+            if (cc.isAvailable(cp1)
+                    && !cp1.getOptions().isChannelDisabled(cc.getName())) {
                 cp1.sendMessage(msg);
             }
         }
@@ -111,7 +115,7 @@ public class Chat {
 
     public static void sendMessage(ChatChannel channel, String msg) {
         for (CorePlayer cp : Core.getInstance().getPlayers().getOnline()) {
-            if (!cp.isChannelDisabled(channel.getName())
+            if (!cp.getOptions().isChannelDisabled(channel.getName())
                     && channel.isAvailable(cp)) {
                 cp.sendMessage(msg);
             }
@@ -120,7 +124,7 @@ public class Chat {
 
     public static void sendTitle(ChatChannel channel, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         for (CorePlayer cp : Core.getInstance().getPlayers().getAll()) {
-            if (!cp.isChannelDisabled(channel.getName())
+            if (!cp.getOptions().isChannelDisabled(channel.getName())
                     && channel.isAvailable(cp)) {
                 cp.getPlayer().sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             }

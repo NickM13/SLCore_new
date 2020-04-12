@@ -6,10 +6,11 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
+import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
+import java.util.List;
 import org.bukkit.Bukkit;
 
 /**
@@ -22,9 +23,18 @@ public class SudoCommand extends CommandTemplate {
     }
     
     @CommandAnnotation
-    public void sudo(CorePlayer sender, CorePlayer sudoer, String command) {
-        Bukkit.dispatchCommand(sudoer.getPlayer(), command);
-        success(sender, "Command run for " + sudoer.getDisplayName() + ": /" + command);
+    public void sudo(CorePlayer sender, CorePlayer receiver, String command) {
+        Bukkit.dispatchCommand(receiver.getPlayer(), command);
+        success(sender, "Command run for " + receiver.getDisplayName() + ": /" + command);
+    }
+    
+    @CommandAnnotation
+    public void sudo(CorePlayer sender, List<CorePlayer> receivers, String command) {
+        for (CorePlayer cp : receivers) {
+            System.out.println(cp.getDisplayName());
+            Bukkit.dispatchCommand(cp.getPlayer(), command);
+        }
+        success(sender, "Sudoed all : /" + command);
     }
     
 }

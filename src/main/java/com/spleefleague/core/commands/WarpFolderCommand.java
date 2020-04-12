@@ -6,15 +6,15 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.HelperArg;
-import com.spleefleague.core.annotation.LiteralArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.HelperArg;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
 import com.spleefleague.core.util.Warp;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.OptionArg;
 
 /**
  * @author NickM13
@@ -24,7 +24,7 @@ public class WarpFolderCommand extends CommandTemplate {
     public WarpFolderCommand() {
         super(WarpFolderCommand.class, "warpfolder", Rank.MODERATOR, Rank.BUILDER);
         setUsage("/warpfolder");
-        setOptions("warpList", (cp) -> Warp.getWarpNames());
+        setOptions("warpList", (cp) -> Warp.getWarpNames(cp));
         setOptions("folderList", (cp) -> Warp.getWarpFolders());
     }
     

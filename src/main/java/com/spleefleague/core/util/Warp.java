@@ -6,11 +6,14 @@
 
 package com.spleefleague.core.util;
 
+import com.google.common.collect.Sets;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.spleefleague.core.Core;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.io.converter.LocationConverter;
+import com.spleefleague.core.player.CorePlayer;
+import com.spleefleague.core.player.Rank;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -87,13 +90,15 @@ public class Warp {
         warp.setFolder(folder);
     }
     
-    public static Set<String> getWarpNames() {
+    public static Set<String> getWarpNames(CorePlayer cp) {
         Set<String> warpFiled = new HashSet<>();
         for (Warp w : warps.values()) {
-            if (w.getFolder().equals(DEFAULT_FOLDER)) {
-                warpFiled.add(w.getName());
-            } else {
-                warpFiled.add(w.getFolder() + ":" + w.getName());
+            if (cp.getRank().hasPermission(w.getMinRank())) {
+                if (w.getFolder().equals(DEFAULT_FOLDER)) {
+                    warpFiled.add(w.getName());
+                } else {
+                    warpFiled.add(w.getFolder() + ":" + w.getName());
+                }
             }
         }
         return warpFiled;
@@ -101,8 +106,11 @@ public class Warp {
     public static Set<String> getWarpFolders() {
         return folders.keySet();
     }
+    public static Set<Warp> getWarps() {
+        return Sets.newHashSet(warps.values());
+    }
     
-    public static TextComponent getWarpsFormatted() {
+    public static TextComponent getWarpsFormatted(Rank rank) {
         TextComponent message = new TextComponent("");
         TextComponent warpstr;
         
@@ -110,6 +118,8 @@ public class Warp {
         
         while (wit.hasNext()) {
             Warp warp = wit.next().getValue();
+            if (!rank.hasPermission(warp.getMinRank()))
+                continue;
             warpstr = new TextComponent(warp.name);
             warpstr.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to warp to '" + warpstr.getText() + "'").create()));
             warpstr.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/warp " + warp.name));
@@ -150,10 +160,23 @@ public class Warp {
         String a[] = name.split(":", 2);
         return warps.get(a[a.length-1].toLowerCase());
     }
-    public static void setWarp(String name, Location loc) {
-        Warp warp = new Warp(name, loc, DEFAULT_FOLDER);
+    public static boolean setWarp(String name, Location loc) {
+        String warpfolder = DEFAULT_FOLDER;
+        String warpname = name;
+        if (name.contains(":")) {
+            warpfolder = name.split(":")[0];
+            warpname = name.split(":")[1];
+            if (warpfolder.isEmpty() || warpname.isEmpty()) {
+                return false;
+            }
+        }
+        Warp warp = new Warp(warpname, loc, warpfolder, Rank.MODERATOR);
         warp.hasChanged = true;
-        warps.put(name.toLowerCase(), warp);
+        warps.put(warpname.toLowerCase(), warp);
+        if (!warpfolder.equals(DEFAULT_FOLDER)) {
+            folders.get(warpfolder).add(warp);
+        }
+        return true;
     }
     public static boolean delWarp(String name) {
         if (warps.containsKey(name.toLowerCase())) {
@@ -168,16 +191,22 @@ public class Warp {
     public Location location;
     public String folder;
     public boolean hasChanged;
+    public Rank minRank;
     
     private Warp(Document doc) {
-        this(doc.get("name", String.class), LocationConverter.load(doc.get("location", List.class)), doc.get("folder", String.class));
+        this(doc.get("name", String.class),
+                LocationConverter.load(doc.get("location", List.class)),
+                doc.get("folder", String.class),
+                Rank.getRank(doc.get("minRank", String.class)));
     }
-    private Warp(String name, Location location, String folder) {
+    private Warp(String name, Location location, String folder, Rank minRank) {
         this.name = name;
         this.location = location;
         this.hasChanged = false;
-        if (folder == null) this.folder = DEFAULT_FOLDER;
-        else                this.folder = folder;
+        if (folder == null)     this.folder = DEFAULT_FOLDER;
+        else                    this.folder = folder;
+        if (minRank == null)    this.minRank = Rank.MODERATOR;
+        else                    this.minRank = minRank;
     }
     
     public String getName() {
@@ -192,6 +221,12 @@ public class Warp {
     }
     public String getFolder() {
         return folder;
+    }
+    public void setMinRank(Rank minRank) {
+        this.minRank = minRank;
+    }
+    public Rank getMinRank() {
+        return minRank;
     }
     
 }

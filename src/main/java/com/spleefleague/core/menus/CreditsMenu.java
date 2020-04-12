@@ -6,8 +6,11 @@
 
 package com.spleefleague.core.menus;
 
+import com.spleefleague.core.Core;
+import com.spleefleague.core.credits.Credits;
 import com.spleefleague.core.menu.InventoryMenuAPI;
 import com.spleefleague.core.menu.InventoryMenuItem;
+import com.spleefleague.core.player.CorePlayer;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -26,6 +29,17 @@ public class CreditsMenu {
                     .setDisplayItem(new ItemStack(Material.BOOK))
                     .setDescription("View the Players that made SpleefLeague possible!")
                     .createLinkedContainer("Server Credits");
+            
+            for (Credits credit : Credits.getCredits()) {
+                CorePlayer cp = Core.getInstance().getPlayers().getOffline(credit.getUuid());
+                menuItem.getLinkedContainer()
+                        .addMenuItem(InventoryMenuAPI.createItem()
+                                .setDisplayItem(InventoryMenuAPI.createCustomSkull(credit.getUuid()))
+                                .setName(cp.getDisplayName())
+                                .setDescription(credit.getDescription())
+                                .setCloseOnAction(false),
+                                credit.getSlot());
+            }
         }
         return menuItem;
     }

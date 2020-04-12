@@ -142,7 +142,7 @@ public class InventoryMenuContainer {
         int pageCount = this.getPageCount(cp);
         String title = titleFun.apply(cp);
         if (pageCount > 1) {
-            title = title + "(" + (cp.getPage() + 1) + "/" + pageCount + ")";
+            title = title + " (" + (cp.getPage() + 1) + "/" + pageCount + ")";
         }
         String formattedTitle = Chat.centerTitle(ChatColor.BLACK + "" + ChatColor.BOLD + title);
         

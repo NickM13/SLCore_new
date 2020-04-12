@@ -6,7 +6,7 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
+import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
@@ -17,7 +17,7 @@ import com.spleefleague.core.player.Rank;
 public class BackCommand extends CommandTemplate {
 
     public BackCommand() {
-        super(BackCommand.class, "back", Rank.DEFAULT);
+        super(BackCommand.class, "back", Rank.MODERATOR, Rank.BUILDER);
         setUsage("/back");
         setDescription("Return to a previous location");
     }

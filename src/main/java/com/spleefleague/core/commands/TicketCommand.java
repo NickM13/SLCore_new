@@ -8,8 +8,8 @@ package com.spleefleague.core.commands;
 
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.Core;
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.LiteralArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.chat.ticket.Ticket;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;

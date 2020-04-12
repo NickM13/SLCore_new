@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package com.spleefleague.core.annotation;
+package com.spleefleague.core.command;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -8,7 +8,7 @@ package com.spleefleague.core.commands;
 
 import com.mongodb.client.MongoCursor;
 import com.spleefleague.core.Core;
-import com.spleefleague.core.annotation.CommandAnnotation;
+import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.infraction.Infraction;
@@ -16,6 +16,7 @@ import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
 import com.spleefleague.core.util.TimeUtils;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -45,7 +46,7 @@ public class PlayerInfoCommand extends CommandTemplate {
     public void playerinfo(CorePlayer sender, OfflinePlayer op) {
         CorePlayer cp = Core.getInstance().getPlayers().getOffline(op.getUniqueId());
         List<String> strings = new ArrayList<>();
-        strings.add(Chat.BRACE + Chat.fillTitle("[ " + cp.getDisplayName() + "'s data" + Chat.BRACE + " ]"));
+        strings.add(Chat.BRACE + Chat.fillTitle("[ " + cp.getDisplayNamePossessive() + " data" + Chat.BRACE + " ]"));
         strings.add(Chat.BRACE + "Name: " +
                 Chat.DEFAULT + op.getName());
         strings.add(Chat.BRACE + "UUID: " +
@@ -54,13 +55,14 @@ public class PlayerInfoCommand extends CommandTemplate {
                 Chat.DEFAULT + cp.getRank().getColor() + cp.getRank().getDisplayNameUnformatted());
         strings.add(Chat.BRACE + "State: " +
                 Chat.DEFAULT + getState(cp));
-        strings.add(Chat.BRACE + "Last seen: " +
-                Chat.DEFAULT + "Who knows!");
+        if (!cp.isOnline())
+            strings.add(Chat.BRACE + "Last seen: " +
+                    Chat.DEFAULT + getLastSeen(cp));
         strings.add(Chat.BRACE + "IP: " +
                 Chat.DEFAULT + getIp(cp));
         strings.add(Chat.BRACE + "Shared accounts: " +
                 Chat.DEFAULT + getSharedAccounts(cp));
-        strings.add(Chat.BRACE + "Total time played: " +
+        strings.add(Chat.BRACE + "Total non-afk time: " +
                 Chat.DEFAULT + getOnlineTime(cp));
         
         String mergeString = "";
@@ -176,6 +178,27 @@ public class PlayerInfoCommand extends CommandTemplate {
         
         return onlineTime;
         */
+    }
+    
+    private String getLastSeen(CorePlayer cp) {
+        String lastSeen = "";
+        long lastConnection = -1;
+        
+        MongoCursor<Document> cursor = Core.getInstance().getPluginDB().getCollection("PlayerConnections").find(new Document("uuid", cp.getUuid())).sort(new Document("date", 1)).iterator();
+        
+        while (cursor.hasNext()) {
+            Document doc = cursor.next();
+            long time = doc.get("date", Date.class).getTime();
+            lastConnection = time;
+        }
+        
+        if (lastConnection == -1) {
+            lastSeen = "Never";
+        } else {
+            lastSeen = TimeUtils.timeToString(System.currentTimeMillis() - lastConnection);
+        }
+        
+        return lastSeen;
     }
 
 }

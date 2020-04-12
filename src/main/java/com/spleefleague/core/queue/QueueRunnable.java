@@ -14,7 +14,7 @@ import com.spleefleague.core.Core;
 public class QueueRunnable implements Runnable {
 
     private boolean stop = false;
-    private long queueDelayMillis = 3000;
+    private long delayTicks = 1 * 20L;
     
     public synchronized void close() {
         this.stop = true;
@@ -22,6 +22,10 @@ public class QueueRunnable implements Runnable {
     
     public synchronized boolean running() {
         return !this.stop;
+    }
+    
+    public synchronized long getDelayTicks() {
+        return delayTicks;
     }
     
     @Override

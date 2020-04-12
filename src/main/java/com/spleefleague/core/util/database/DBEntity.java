@@ -56,6 +56,9 @@ public class DBEntity {
                                     break;
                                 }
                             }
+                        } else if (DBEntity.class.isAssignableFrom(f.getType())) {
+                            DBEntity dbe = (DBEntity) f.get(this);
+                            doc.append(fieldname, dbe.save());
                         } else if (f.getAnnotation(DBField.class).serializer() != Object.class) {
                             for (Method method : f.getAnnotation(DBField.class).serializer().getMethods()) {
                                 if (method.getName().equalsIgnoreCase("save")) {
@@ -113,6 +116,9 @@ public class DBEntity {
                                     break;
                                 }
                             }
+                        } else if (DBEntity.class.isAssignableFrom(f.getType())) {
+                            obj = f.getType().newInstance();
+                            ((DBEntity) obj).load(doc.get(fieldname, Document.class));
                         } else if (f.getAnnotation(DBField.class).serializer() != Object.class) {
                             for (Method method : f.getAnnotation(DBField.class).serializer().getMethods()) {
                                 if (method.getName().equalsIgnoreCase("load")) {

@@ -32,6 +32,7 @@ import com.spleefleague.core.player.cosmetics.CosmeticArmor;
 import com.spleefleague.core.plugin.CorePlugin;
 import com.spleefleague.core.request.Request;
 import com.spleefleague.core.util.TpCoord;
+import com.spleefleague.core.util.Warp;
 import com.spleefleague.core.util.database.DBPlayer;
 import com.spleefleague.core.vendor.KeyItem;
 import com.spleefleague.core.vendor.VendorItem;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -61,9 +63,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 
 /**
  * @author NickM13
@@ -102,10 +106,11 @@ public class CorePlayer extends DBPlayer {
     private Map<Integer, Request> requests = new HashMap<>();
 
     // Options
-    private final Set<String> disabledChannels;
-    
     @DBField
     private String gameMode = GameMode.SURVIVAL.name();
+    
+    @DBField
+    private CorePlayerOptions options;
     
     /**
      * Non-database variables
@@ -139,7 +144,7 @@ public class CorePlayer extends DBPlayer {
         lastLocation = null;
         checkpoint = null;
         tempRanks = new ArrayList<>();
-        disabledChannels = new HashSet<>();
+        options = new CorePlayerOptions();
         vanished = false;
         party = null;
         coins = 0;
@@ -157,6 +162,10 @@ public class CorePlayer extends DBPlayer {
         setRank(rank);
         online = true;
         updateArmor();
+    }
+    
+    public CorePlayerOptions getOptions() {
+        return options;
     }
     
     @DBSave(fieldname="heldItem")
@@ -269,64 +278,9 @@ public class CorePlayer extends DBPlayer {
     }
     
     public void activateHeldItem() {
-        heldItem.activate(this);
+        if (heldItem != null)
+            heldItem.activate(this);
     }
-    
-    /*
-    private static InventoryMenu createActiveHeldMenuItem() {
-        return InventoryMenu.createItem()
-                .setName(cp -> {
-                    return cp.getHeldItem().getDisplayName();
-                }).setDescription(cp -> {
-                    return cp.getHeldItem().getDescription();
-                }).setDisplayItem(cp -> {
-                    return cp.getHeldItem().getItem();
-                }).setCloseOnAction(false);
-    }
-    public void openHeldItem() {
-        InventoryMenu menu = InventoryMenu.createMenu()
-                .setTitle("Held Item");
-        menu.addMenuItem(InventoryMenu.createItem()
-                .setName(DEFAULT_HELD_ITEM.getDisplayName())
-                .setDescription(DEFAULT_HELD_ITEM.getDescription())
-                .setDisplayItem(DEFAULT_HELD_ITEM.getItem())
-                .setAction(cp -> {
-                    cp.setHeldItem(DEFAULT_HELD_ITEM);
-                })
-                .setCloseOnAction(false));
-        for (String type : VendorItem.getItemTypes()) {
-            if (type.equalsIgnoreCase("key")) continue;
-            if (selectedItems.containsKey(type)) {
-                VendorItem item = VendorItem.getVendorItem(type, selectedItems.get(type));
-                if (item != null) {
-                    menu.addMenuItem(InventoryMenu.createItem()
-                            .setName(item.getDisplayName())
-                            .setDescription(item.getDescription())
-                            .setDisplayItem(item.getItem())
-                            .setAction(cp -> {
-                                cp.setHeldItem(item);
-                            })
-                            .setCloseOnAction(false));
-                }
-            }
-        }
-        for (String key : keys) {
-            KeyItem item = KeyItem.getKeyItem(key);
-            if (item != null) {
-                menu.addMenuItem(InventoryMenu.createItem()
-                        .setName(item.getDisplayName())
-                        .setDescription(item.getDescription())
-                        .setDisplayItem(item.getItem())
-                        .setAction(cp -> {
-                            cp.setHeldItem(item);
-                        })
-                        .setCloseOnAction(false));
-            }
-        }
-        menu.addStaticItem(createActiveHeldMenuItem(), 4, 5);
-        setInventoryMenuItem(menu);
-    }
-    */
     
     @Override
     public void close() {
@@ -427,6 +381,14 @@ public class CorePlayer extends DBPlayer {
         }
     }
     
+    public ItemStack getSkull() {
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta skullmeta = (SkullMeta)skull.getItemMeta();
+        skullmeta.setOwningPlayer(getPlayer());
+        skull.setItemMeta(skullmeta);
+        return skull;
+    }
+    
     @Override
     public String getDisplayName() {
         return getRank().getColor() + this.getName() + Chat.DEFAULT;
@@ -463,40 +425,22 @@ public class CorePlayer extends DBPlayer {
             tempRanks.add(new TempRank(d.get("rank", String.class), d.get("expireTime", Long.class)));
         }
     }
-    @DBSave(fieldname="disabledChats")
-    protected List<String> saveDisabledChatChannels() {
-        return Lists.newArrayList(disabledChannels);
-    }
-    @DBLoad(fieldname="disabledChats")
-    protected void loadDisabledChatChannels(List<String> channels) {
-        for (String c : channels) {
-            disabledChannels.add(c.toLowerCase());
-        }
-    }
-    
-    public void toggleDisabledChannel(String channel) {
-        channel = channel.toLowerCase();
-        if (disabledChannels.contains(channel)) {
-            disabledChannels.remove(channel);
-        } else {
-            disabledChannels.add(channel);
-        }
-    }
-    public boolean isChannelDisabled(String channel) {
-        return disabledChannels.contains(channel.toLowerCase());
-    }
 
     public void invsee(CorePlayer target) {
         getPlayer().openInventory(target.getPlayer().getInventory());
     }
     public void invcopy(CorePlayer target) {
-        loadPregameState();
+        loadPregameState(null);
         pregameState.save(PregameState.PSFlag.INVENTORY);
         getPlayer().getInventory().setContents(target.getInventory());
     }
 
     public boolean canBuild() {
         return (rank.hasPermission(Rank.BUILDER) && !getPlayer().getGameMode().equals(GameMode.SURVIVAL) && !CorePlugin.isInBattleGlobal(getPlayer()));
+    }
+    
+    public boolean canBreak() {
+        return canBuild() && !(getPlayer().getInventory().getItemInMainHand().getType().toString().toLowerCase().contains("sword"));
     }
 
     @DBLoad(fieldname="rank")
@@ -618,34 +562,56 @@ public class CorePlayer extends DBPlayer {
         return getPlayer().getLocation();
     }
 
-    public void teleport(Location loc) {
+    public void saveLastLocation() {
         lastLocation = getPlayer().getLocation();
+    }
+    public boolean warp(Warp warp) {
+        if (getRank().hasPermission(warp.getMinRank())) {
+            teleport(warp.getLocation());
+            return true;
+        }
+        return false;
+    }
+    public void teleport(Vector vec) {
+        teleport(vec.getX(), vec.getY(), vec.getZ());
+    }
+    public void teleport(Location loc) {
+        saveLastLocation();
         getPlayer().teleport(loc, PlayerTeleportEvent.TeleportCause.COMMAND);
     }
     public void teleport(double x, double y, double z) {
         Location loc = new Location(getLocation().getWorld(), x, y, z, getLocation().getYaw(), getLocation().getPitch());
         teleport(loc);
     }
-    public void teleport(TpCoord x, TpCoord y, TpCoord z) {
+    public void teleport(TpCoord x, TpCoord y, TpCoord z, @Nullable Double pitch, @Nullable Double yaw) {
         Location loc = getLocation().clone();
         
         TpCoord.apply(loc, x, y, z);
+        if (pitch != null) loc.setPitch(pitch.floatValue());
+        if (yaw != null) loc.setYaw(yaw.floatValue());
         
         teleport(loc);
     }
     
     public void refreshHotbar() {
+        if (getPlayer().getGameMode().equals(GameMode.CREATIVE)) return;
         getPlayer().getInventory().clear();
         for (InventoryMenuItemHotbar item : InventoryMenuAPI.getHotbarItems()) {
             if (item.isVisible(this))
                 getPlayer().getInventory().setItem(item.getSlot(), item.createItem(this));
         }
     }
-    public void gotoSpawn() {
-        if (!getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
-            refreshHotbar();
+    public Location getSpawnLocation() {
+        Warp spawn = Warp.getWarp("spawn");
+        if (spawn != null) {
+            return spawn.getLocation();
+        } else {
+            return Core.DEFAULT_WORLD.getSpawnLocation().clone().add(0, 0, 0);
         }
-        teleport(Core.DEFAULT_WORLD.getSpawnLocation().clone().add(0, 0, 0));
+    }
+    public void gotoSpawn() {
+        refreshHotbar();
+        teleport(getSpawnLocation());
     }
     
     public void setCheckpoint(String warp, int duration) {

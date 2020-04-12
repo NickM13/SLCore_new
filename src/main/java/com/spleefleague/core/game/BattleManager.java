@@ -6,12 +6,7 @@
 
 package com.spleefleague.core.game;
 
-import com.google.common.collect.Lists;
 import com.spleefleague.core.Core;
-import com.spleefleague.core.party.Party;
-import com.spleefleague.core.player.CorePlayer;
-import com.spleefleague.core.plugin.CorePlugin;
-import com.spleefleague.core.queue.PlayerQueue;
 import com.spleefleague.core.queue.QueueContainer;
 import com.spleefleague.core.util.database.DBPlayer;
 import java.util.ArrayList;
@@ -20,10 +15,40 @@ import java.util.List;
 import org.bukkit.Bukkit;
 
 /**
+ * BattleManager contains a queue system, list of ongoing battles
+ * 
  * @author NickM13
  * @param <B>
  */
 public class BattleManager<B extends Battle> implements QueueContainer {
+    
+    public static BattleManager createManager(ArenaMode mode) {
+        BattleManager bm;
+        switch (mode.teamStyle) {
+            case SOLO:
+                bm = new BattleManagerSolo(mode);
+                break;
+            case TEAM:
+                bm = new BattleManagerTeam(mode);
+                break;
+            case MULTI_DYNAMIC:
+                bm = new BattleManagerMultiDynamic(mode);
+                break;
+            case MULTI_STATIC:
+                bm = new BattleManagerMultiStatic(mode);
+                break;
+            case MULTI_BANANA:
+                bm = new BattleManagerMultiBonanza(mode);
+                break;
+            default:
+                bm = null;
+                break;
+        }
+        if (bm != null) {
+            bm.init();
+        }
+        return bm;
+    }
     
     Class battleClass;
 
@@ -31,11 +56,20 @@ public class BattleManager<B extends Battle> implements QueueContainer {
     String displayName;
     ArenaMode mode;
 
-    PlayerQueue queue;
     List<B> battles = new ArrayList<>();
+
+    protected BattleManager(ArenaMode mode) {
+        this.name = mode.getName();
+        this.displayName = mode.getDisplayName();
+        this.mode = mode;
+        this.battleClass = mode.getBattleClass();
+
+        this.battles = new ArrayList<>();
+    }
     
     public void init() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getInstance(), () -> {
+        // Should these be asynchronous?
+        Bukkit.getScheduler().runTaskTimer(Core.getInstance(), () -> {
             Iterator<B> bit = battles.iterator();
             Battle b;
             while (bit.hasNext()) {
@@ -45,12 +79,13 @@ public class BattleManager<B extends Battle> implements QueueContainer {
                         bit.remove();
                     } else {
                         b.updateScoreboard();
+                        b.updateField();
                         b.doCountdown();
                     }
                 }
             }
-        }, 20L, 20L);
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getInstance(), () -> {
+        }, 0L, 20L);
+        Bukkit.getScheduler().runTaskTimer(Core.getInstance(), () -> {
             Iterator<B> bit = battles.iterator();
             Battle b;
             while (bit.hasNext()) {
@@ -59,183 +94,27 @@ public class BattleManager<B extends Battle> implements QueueContainer {
                     b.updateExperience();
                 }
             }
-        }, 2L, 2L);
+        }, 0L, 2L);
     }
     
     public void close() {
         for (B b : battles) {
             b.endBattle();
         }
-    }
-
-    public BattleManager(ArenaMode mode) {
-        this.name = mode.getName();
-        this.displayName = mode.getDisplayName();
-        this.mode = mode;
-        this.battleClass = mode.getBattleClass();
-
-        queue = new PlayerQueue();
-        queue.initialize(displayName, this, this.mode.getTeamStyle().equals(ArenaMode.TeamStyle.TEAM));
-        battles = new ArrayList<>();
+        battles.clear();
     }
     
-    public boolean isTeamQueue() {
-        return this.mode.getTeamStyle().equals(ArenaMode.TeamStyle.TEAM);
-    }
-    
-    public boolean isSoloQueue() {
-        return this.mode.getTeamStyle().equals(ArenaMode.TeamStyle.SINGLE);
-    }
-    
-    public int queuePlayer(DBPlayer dbp) {
-        CorePlayer cp = Core.getInstance().getPlayers().get(dbp);
-        Party party = cp.getParty();
-        switch (mode.getTeamStyle()) {
-            case TEAM:
-                if (party == null) {
-                    Core.sendMessageToPlayer(dbp, "You must been in a party to join this queue!");
-                    return 1;
-                }
-                if (this.mode.getRequiredTeamSizes().contains(party.getPlayers().size())) {
-                    Core.sendMessageToPlayer(dbp, "No queue exists for your party size!");
-                    return 2;
-                }
-                break;
-            case SINGLE:
-                startMatch(Lists.newArrayList(cp), "");
-                System.out.println(cp.getDisplayName());
-                return 0;
-        }
-        if (this.isTeamQueue()) {
-        }
-        queue.queuePlayer(dbp);
-        return 0;
-    }
-    public int queuePlayer(DBPlayer dbp, Arena arena) {
-        if (arena == null) {
-            return queuePlayer(dbp);
-        }
-        else {
-            if (arena.isPaused()) {
-                Core.sendMessageToPlayer(dbp, arena.getDisplayName() + " is currently disabled.");
-                return 3;
-            } else {
-                CorePlayer cp = Core.getInstance().getPlayers().get(dbp);
-                Party party = cp.getParty();
-                switch (mode.getTeamStyle()) {
-                    case TEAM:
-                        if (party == null) {
-                            Core.sendMessageToPlayer(dbp, "You must been in a party to join this queue!");
-                            return 1;
-                        }
-                        if (arena.getTeamSize() != party.getPlayers().size()) {
-                            Core.sendMessageToPlayer(dbp, "That arena requires a team size of " + arena.getTeamSize() + "!");
-                            return 2;
-                        }
-                        break;
-                    case SINGLE:
-                        startMatch(Lists.newArrayList(cp), arena.getName());
-                        return 0;
-                }
-                queue.queuePlayer(dbp, arena);
-                return 0;
-            }
-        }
-    }
-    
-    private ArrayList<DBPlayer> gatherPlayers(int num, int teamSize) {
-        ArrayList<DBPlayer> splayers = new ArrayList<>();
-        ArrayList<DBPlayer> dbplayers = queue.getMatchedPlayers(num, teamSize);
-        if (dbplayers == null) return null;
-        for (DBPlayer dbp : dbplayers) {
-            splayers.add(Core.getInstance().getPlayers().get(dbp.getPlayer()));
-            if (splayers.size() == num) return splayers;
-        }
-        return null;
-    }
+    public int queuePlayer(DBPlayer dbp) { return -1; }
+    public int queuePlayer(DBPlayer dbp, Arena arena) { return -1; }
 
     @Override
-    public void checkQueue() {
-        if (this.isTeamQueue()) {
-            for (int size : this.mode.getRequiredTeamSizes()) {
-                if (queue.getQueueSize() >= this.mode.getRequiredTeams()) {
-                    ArrayList<DBPlayer> players = gatherPlayers(this.mode.getRequiredTeams(), size);
-                    if (players != null) {
-                        startMatch(players, queue.getLastArenaName());
-                    }
-                }
-            }
-        } else {
-            if (queue.getQueueSize() >= this.mode.getRequiredTeams()) {
-                ArrayList<DBPlayer> players = gatherPlayers(this.mode.getRequiredTeams(), 0);
-                if (players != null) {
-                    startMatch(players, queue.getLastArenaName());
-                }
-            }
-        }
-    }
+    public void checkQueue() { }
     
     public B getPlayerBattle(DBPlayer player) {
         return (B) player.getBattle();
     }
     
-    public void startMatch(List<DBPlayer> players, String name) {
-        Arena arena = Arena.getByName(name, mode);
-        B sb = null;
-        List<DBPlayer> playersFull = new ArrayList<>();
-        if (this.isTeamQueue()) {
-            int size = -1;
-            for (DBPlayer dbp : players) {
-                CorePlayer cp = Core.getInstance().getPlayers().get(dbp);
-                Party party = cp.getParty();
-                if (party == null) return;
-                if (size == -1) {
-                    size = party.getPlayers().size();
-                } else if (size != party.getPlayers().size()) {
-                    return;
-                }
-                for (CorePlayer cp2 : party.getPlayers()) {
-                    playersFull.add(cp2);
-                    if (CorePlugin.isInBattleGlobal(cp2.getPlayer())) {
-                        party.getChatGroup().sendMessage(cp2.getDisplayName() + " is already in a battle!");
-                        System.out.println("Player " + cp2.getDisplayName() + " is already in a battle!");
-                        Core.getInstance().unqueuePlayerGlobally(cp);
-                        Core.getInstance().unqueuePlayerGlobally(cp2);
-                        return;
-                    }
-                }
-            }
-        } else {
-            playersFull = players;
-            for (DBPlayer sp : playersFull) {
-                CorePlayer cp = Core.getInstance().getPlayers().get(sp);
-                Party party = cp.getParty();
-                if (party != null) {
-                    party.leave(cp);
-                }
-                if (CorePlugin.isInBattleGlobal(sp.getPlayer())) {
-                    System.out.println("Player " + cp.getDisplayName() + " is already in a battle!");
-                    Core.getInstance().unqueuePlayerGlobally(cp);
-                    return;
-                }
-            }
-        }
-        try {
-            if (arena.isAvailable()) {
-                for (DBPlayer dbp : playersFull) {
-                    CorePlayer cp = Core.getInstance().getPlayers().get(dbp);
-                    Core.getInstance().unqueuePlayerGlobally(cp);
-                }
-                sb = (B) battleClass
-                        .getDeclaredConstructor(List.class, mode.arenaClass)
-                        .newInstance(players, arena);
-                sb.startBattle();
-                battles.add(sb);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    public void startMatch(List<DBPlayer> players, String name) { }
     public void endMatch(B battle) {
         battles.remove(battle);
     }

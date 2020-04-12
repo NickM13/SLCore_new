@@ -61,9 +61,7 @@ public class CorePlugin<P extends DBPlayer> extends JavaPlugin {
     public void close() {}
     
     public void addBattleManager(ArenaMode mode) {
-        BattleManager bm = new BattleManager(mode);
-        bm.init();
-        battleManagers.put(mode, bm);
+        battleManagers.put(mode, BattleManager.createManager(mode));
     }
     public BattleManager getBattleManager(ArenaMode mode) {
         return battleManagers.get(mode);

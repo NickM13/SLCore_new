@@ -6,13 +6,14 @@
 
 package com.spleefleague.core.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.HelperArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.HelperArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
 import com.spleefleague.core.util.TpCoord;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.bukkit.command.CommandSender;
 
 /**
@@ -36,17 +37,21 @@ public class TpPosCommand extends CommandTemplate {
             CorePlayer cp,
             @HelperArg(value="<x>") TpCoord x,
             @HelperArg(value="<y>") TpCoord y,
-            @HelperArg(value="<z>") TpCoord z) {
-        cp.teleport(x, y, z);
+            @HelperArg(value="<z>") TpCoord z,
+            @Nullable @HelperArg(value="<pitch>") Double pitch,
+            @Nullable @HelperArg(value="<yaw>") Double yaw) {
+        cp.teleport(x, y, z, pitch, yaw);
     }
     @CommandAnnotation
     public void tpposPlayers(CommandSender sender,
             List<CorePlayer> cps,
             @HelperArg(value="<x>") TpCoord x,
             @HelperArg(value="<y>") TpCoord y,
-            @HelperArg(value="<z>") TpCoord z) {
+            @HelperArg(value="<z>") TpCoord z,
+            @Nullable @HelperArg(value="<pitch>") Double pitch,
+            @Nullable @HelperArg(value="<yaw>") Double yaw) {
         for (CorePlayer cp : cps) {
-            cp.teleport(x, y, z);
+            cp.teleport(x, y, z, pitch, yaw);
         }
     }
 

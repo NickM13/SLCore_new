@@ -22,6 +22,10 @@ public class Dimension implements DBVariable<Document> {
         low = new Point();
         high = new Point();
     }
+    public Dimension(Dimension dim) {
+        low = new Point(dim.low.x, dim.low.y, dim.low.z);
+        high = new Point(dim.high.x, dim.high.y, dim.high.z);
+    }
     public Dimension(Point p1, Point p2) {
         low = new Point();
         high = new Point();
@@ -68,6 +72,22 @@ public class Dimension implements DBVariable<Document> {
         return (p.x >= low.x && p.x <= high.x &&
                 p.y >= low.y && p.y <= high.y &&
                 p.z >= low.z && p.z <= high.z);
+    }
+    
+    public Dimension expand(double x, double y, double z) {
+        Dimension dim = new Dimension(this);
+        dim.low.x -= x;
+        dim.low.y -= y;
+        dim.low.z -= z;
+        
+        dim.high.x += x;
+        dim.high.y += y;
+        dim.high.z += z;
+        return dim;
+    }
+    
+    public Dimension expand(double v) {
+        return expand(v, v, v);
     }
 
     @Override

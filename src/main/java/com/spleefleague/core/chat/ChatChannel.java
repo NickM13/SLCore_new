@@ -12,7 +12,6 @@ import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.bukkit.ChatColor;
 

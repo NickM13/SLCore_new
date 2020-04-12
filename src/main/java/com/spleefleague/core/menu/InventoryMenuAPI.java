@@ -7,9 +7,14 @@
 package com.spleefleague.core.menu;
 
 import com.spleefleague.core.chat.Chat;
+import com.spleefleague.core.player.CorePlayer;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -41,6 +46,14 @@ public class InventoryMenuAPI {
     }
     public static ItemStack getLockedIcon() {
         return LOCKED_ICON;
+    }
+    public static ItemStack createCustomItem(Material displayItem) {
+        ItemStack itemStack = new ItemStack(displayItem);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemMeta.setUnbreakable(true);
+        itemMeta.addItemFlags(ItemFlag.values());
+        itemStack.setItemMeta(itemMeta);
+        return itemStack;
     }
     public static ItemStack createCustomItem(Material displayItem, int damage) {
         ItemStack itemStack = new ItemStack(displayItem);
@@ -76,6 +89,15 @@ public class InventoryMenuAPI {
         return skull;
     }
     
+    public static ItemStack createCustomSkull(UUID uuid) {
+        OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta skullmeta = (SkullMeta)skull.getItemMeta();
+        skullmeta.setOwningPlayer(op);
+        skull.setItemMeta(skullmeta);
+        return skull;
+    }
+    
     public static InventoryMenuContainer createContainer() {
         return new InventoryMenuContainer();
     }
@@ -90,6 +112,11 @@ public class InventoryMenuAPI {
     
     public static InventoryMenuItemHotbar createItemHotbar(int slot, String identifier) {
         return new InventoryMenuItemHotbar(slot, identifier);
+    }
+    
+    public static InventoryMenuItemOption createItemOption(Function<CorePlayer, Integer> selectedFun) {
+        return new InventoryMenuItemOption()
+                .setSelected(selectedFun);
     }
     
     public static boolean isHotbarItem(ItemStack item) {
@@ -136,7 +163,8 @@ public class InventoryMenuAPI {
         hotbarItems.put(InvMenuType.SLMENU.name().toLowerCase(), (InventoryMenuItemHotbar) InvMenuType.SLMENU.create()
                 .setName(ChatColor.RESET + "" + Chat.PLUGIN_PREFIX + "" + ChatColor.BOLD + "SpleefLeague Menu")
                 .setDisplayItem(new ItemStack(Material.COMPASS))
-                .setAction(cp -> { cp.setInventoryMenuItem(hotbarItems.get(InvMenuType.SLMENU.name().toLowerCase())); }));
+                .setAction(cp -> { cp.setInventoryMenuItem(hotbarItems.get(InvMenuType.SLMENU.name().toLowerCase())); })
+                .createLinkedContainer("SpleefLeague Menu"));
         
         hotbarItems.put(InvMenuType.HELD.name().toLowerCase(), (InventoryMenuItemHotbar) InvMenuType.HELD.create()
                 .setName(cp -> cp.getHeldItem().getDisplayName())

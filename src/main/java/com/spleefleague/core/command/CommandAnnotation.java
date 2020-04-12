@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package com.spleefleague.core.annotation;
+package com.spleefleague.core.command;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,8 +16,9 @@ import java.lang.annotation.Target;
  */
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface OptionArg {
-    String listName();
-    boolean force() default true;
+@Target({ElementType.METHOD})
+public @interface CommandAnnotation {
+    boolean hidden() default false;
+    String minRank() default "DEFAULT";
+    String additionalRanks() default "";
 }

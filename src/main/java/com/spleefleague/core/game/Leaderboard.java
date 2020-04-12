@@ -21,24 +21,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import org.bson.Document;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * @author NickM13
  */
 public class Leaderboard extends DBEntity {
     
-    private static Map<String, Leaderboard> leaderboards = new HashMap<>();
+    private static Map<String, Leaderboard> leaderboards = new TreeMap<>();
     private static MongoCollection lbCollection = null;
     
     public static void init() {
         lbCollection = Core.getInstance().getPluginDB().getCollection("Leaderboards");
         MongoCursor<Document> it = lbCollection.find().iterator();
     }
-    public static void init(String name, LeaderboardStyle style) {
+    public static void init(String name, LeaderboardStyle style, String displayName, ItemStack displayItem, String description) {
         Document doc;
-        Leaderboard leaderboard = new Leaderboard(name, style);
+        Leaderboard leaderboard = new Leaderboard(name, style, displayName, displayItem, description);
         if ((doc = (Document) lbCollection.find(new Document("name", name)).first()) != null) {
             leaderboard.load(doc);
         }
@@ -50,6 +52,9 @@ public class Leaderboard extends DBEntity {
         if (leaderboards.containsKey(name))
             return leaderboards.get(name);
         return null;
+    }
+    public static Map<String, Leaderboard> getLeaderboards() {
+        return leaderboards;
     }
     public static Set<String> getLeaderboardNames() {
         return leaderboards.keySet();
@@ -150,10 +155,27 @@ public class Leaderboard extends DBEntity {
     @DBField
     private List<UUID> players;
     
-    public Leaderboard(String name, LeaderboardStyle style) {
+    private String displayName;
+    private ItemStack displayItem;
+    private String description;
+    
+    public Leaderboard(String name, LeaderboardStyle style, String displayName, ItemStack displayItem, String description) {
         this.name = name;
         this.style = style;
+        this.displayName = displayName;
+        this.displayItem = displayItem;
+        this.description = description;
         reset();
+    }
+    
+    public String getDisplayName() {
+        return displayName;
+    }
+    public ItemStack getDisplayItem() {
+        return displayItem;
+    }
+    public String getDescription() {
+        return description;
     }
     
     public void reset() {

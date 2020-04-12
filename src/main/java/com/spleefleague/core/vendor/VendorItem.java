@@ -62,6 +62,15 @@ public class VendorItem extends DBEntity {
         vendorItems.get(item.getType()).put(item.getIdentifier(), item);
         vendorItemsFull.put(toSimpleItem(item.getItem()), item);
     }
+    public static boolean removeVendorItem(VendorItem item) {
+        if (vendorItems.containsKey(item.getType())) {
+            if (vendorItems.get(item.getType()).containsKey(item.getIdentifier())) {
+                vendorItems.get(item.getType()).remove(item.getIdentifier());
+                return true;
+            }
+        }
+        return false;
+    }
     
     protected Material material;
     @DBField

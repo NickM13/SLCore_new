@@ -18,27 +18,29 @@ import java.util.Set;
 public class ArenaMode {
     
     public enum TeamStyle {
-        SINGLE,
+        SOLO,
         TEAM,
         MULTI_STATIC,
-        MULTI_DYNAMIC
+        MULTI_DYNAMIC,
+        MULTI_BANANA
     }
     
     protected static Map<String, ArenaMode> arenaModes = new HashMap<>();
     
     protected final String name;
     protected final String displayName;
-    protected final int requiredTeams;
+    protected final int requiredTeams, maximumTeams;
     protected final TeamStyle teamStyle;
     protected final Set<Integer> requiredTeamSizes;
     protected final boolean joinOngoing;
     protected final Class<? extends Arena> arenaClass;
     protected final Class<? extends Battle> battleClass;
     
-    protected ArenaMode(String name, String displayName, int requiredTeams, TeamStyle teamStyle, boolean joinOngoing, Class<? extends Arena> arenaClass, Class<? extends Battle> battleClass) {
+    protected ArenaMode(String name, String displayName, int requiredTeams, int maximumTeams, TeamStyle teamStyle, boolean joinOngoing, Class<? extends Arena> arenaClass, Class<? extends Battle> battleClass) {
         this.name = name;
         this.displayName = displayName;
         this.requiredTeams = requiredTeams;
+        this.maximumTeams = maximumTeams;
         this.teamStyle = teamStyle;
         this.requiredTeamSizes = new HashSet<>();
         this.joinOngoing = joinOngoing;
@@ -46,8 +48,8 @@ public class ArenaMode {
         this.battleClass = battleClass;
     }
     
-    public static void addArenaMode(String name, String displayName, int requiredTeams, TeamStyle teamStyle, boolean joinOngoing, Class<? extends Arena> arenaClass, Class<? extends Battle> battleClass) {
-        arenaModes.put(name, new ArenaMode(name, displayName, requiredTeams, teamStyle, joinOngoing, arenaClass, battleClass));
+    public static void addArenaMode(String name, String displayName, int requiredTeams, int maximumTeams, TeamStyle teamStyle, boolean joinOngoing, Class<? extends Arena> arenaClass, Class<? extends Battle> battleClass) {
+        arenaModes.put(name, new ArenaMode(name, displayName, requiredTeams, maximumTeams, teamStyle, joinOngoing, arenaClass, battleClass));
     }
     public static ArenaMode getArenaMode(String name) {
         return arenaModes.get(name);
@@ -61,6 +63,10 @@ public class ArenaMode {
         return requiredTeams;
     }
     
+    public int getMaximumTeams() {
+        return maximumTeams;
+    }
+    
     public void addRequiredTeamSize(int requiredTeamSize) {
         if (requiredTeamSize != 0) {
             requiredTeamSizes.add(requiredTeamSize);
@@ -69,6 +75,13 @@ public class ArenaMode {
     public Set<Integer> getRequiredTeamSizes() {
         if (requiredTeamSizes.isEmpty()) return Sets.newHashSet(1);
         return requiredTeamSizes;
+    }
+    public String getRequiredTeamSizesString() {
+        String formatted = "";
+        for (Integer size : requiredTeamSizes) {
+            formatted += (!formatted.isEmpty() ? ", " : "") + size;
+        }
+        return formatted;
     }
     
     public String getName() {
