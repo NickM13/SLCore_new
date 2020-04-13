@@ -11,6 +11,8 @@ import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
+import com.spleefleague.core.util.TimeUtils;
+import javax.annotation.Nullable;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
@@ -25,45 +27,19 @@ public class TempBanCommand extends CommandTemplate {
         setDescription("Temporarily ban a player from the server");
     }
     
-    public long toMillis(String time) {
-        long multiplier = 1000;
-        switch (time.substring(time.length() - 1)) {
-            case "y": multiplier *= 52;
-            case "w": multiplier *= 7;
-            case "d": multiplier *= 24;
-            case "h": multiplier *= 60;
-            case "m": multiplier *= 60;
-                break;
-        }
-        time = time.substring(0, time.length() - 1);
-        return Long.valueOf(time) * multiplier;
-    }
-    
     @CommandAnnotation
     public void tempban(CorePlayer sender,
             OfflinePlayer op,
             String time,
-            String reason) {
-        Core.getInstance().tempban(sender.getName(), op, toMillis(time), reason);
-    }
-    @CommandAnnotation
-    public void tempban(CorePlayer sender,
-            OfflinePlayer op,
-            String time) {
-        Core.getInstance().tempban(sender.getName(), op, toMillis(time), "");
+            @Nullable String reason) {
+        Core.getInstance().tempban(sender.getName(), op, TimeUtils.toMillis(time), reason == null ? "" : reason);
     }
     @CommandAnnotation
     public void tempban(CommandSender sender,
             OfflinePlayer op,
             String time,
-            String reason) {
-        Core.getInstance().tempban(sender.getName(), op, toMillis(time), reason);
-    }
-    @CommandAnnotation
-    public void tempban(CommandSender sender,
-            OfflinePlayer op,
-            String time) {
-        Core.getInstance().tempban(sender.getName(), op, toMillis(time), "");
+            @Nullable String reason) {
+        Core.getInstance().tempban(sender.getName(), op, TimeUtils.toMillis(time), reason == null ? "" : reason);
     }
     
 }

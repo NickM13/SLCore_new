@@ -11,6 +11,7 @@ import com.spleefleague.core.command.CommandAnnotation;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
+import javax.annotation.Nullable;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
@@ -26,20 +27,16 @@ public class BanCommand extends CommandTemplate {
     }
     
     @CommandAnnotation
-    public void ban(CorePlayer sender, OfflinePlayer op, String reason) {
-        Core.getInstance().ban(sender.getName(), op, reason);
+    public void ban(CorePlayer sender,
+            OfflinePlayer op,
+            @Nullable String reason) {
+        Core.getInstance().ban(sender.getName(), op, reason == null ? "" : reason);
     }
     @CommandAnnotation
-    public void ban(CorePlayer sender, OfflinePlayer op) {
-        Core.getInstance().ban(sender.getName(), op, "");
-    }
-    @CommandAnnotation
-    public void ban(CommandSender sender, OfflinePlayer op, String reason) {
-        Core.getInstance().ban(sender.getName(), op, reason);
-    }
-    @CommandAnnotation
-    public void ban(CommandSender sender, OfflinePlayer op) {
-        Core.getInstance().ban(sender.getName(), op, "");
+    public void ban(CommandSender sender,
+            OfflinePlayer op,
+            @Nullable String reason) {
+        Core.getInstance().ban(sender.getName(), op, reason == null ? "" : reason);
     }
     
 }

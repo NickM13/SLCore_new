@@ -56,4 +56,18 @@ public class TimeUtils {
         return timeStr;
     }
     
+    public static long toMillis(String time) {
+        long multiplier = 1000;
+        switch (time.substring(time.length() - 1)) {
+            case "y": multiplier *= 52;
+            case "w": multiplier *= 7;
+            case "d": multiplier *= 24;
+            case "h": multiplier *= 60;
+            case "m": multiplier *= 60;
+                break;
+        }
+        time = time.substring(0, time.length() - 1);
+        return Long.valueOf(time) * multiplier;
+    }
+    
 }

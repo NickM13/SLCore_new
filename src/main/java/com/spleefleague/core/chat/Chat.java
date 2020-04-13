@@ -94,6 +94,10 @@ public class Chat {
 
     public static void sendMessage(DBPlayer dbp, String msg) {
         CorePlayer cp = Core.getInstance().getPlayers().get(dbp);
+        if (cp.isMuted() == 1) {
+            Core.sendMessageToPlayer(dbp, "You're muted!");
+            return;
+        }
         ChatChannel cc = cp.getChatChannel();
         if (!cc.isAvailable(cp)) {
             cc = ChatChannel.getDefaultChannel();
@@ -105,10 +109,14 @@ public class Chat {
             return;
         }
         msg = cc.formatMessage(cp, msg);
-        for (CorePlayer cp1 : cc.getPlayers(cp)) {
-            if (cc.isAvailable(cp1)
-                    && !cp1.getOptions().isChannelDisabled(cc.getName())) {
-                cp1.sendMessage(msg);
+        if (cp.isMuted() == 2) {
+            cp.sendMessage(msg);
+        } else {
+            for (CorePlayer cp1 : cc.getPlayers(cp)) {
+                if (cc.isAvailable(cp1)
+                        && !cp1.getOptions().isChannelDisabled(cc.getName())) {
+                    cp1.sendMessage(msg);
+                }
             }
         }
     }
@@ -135,23 +143,28 @@ public class Chat {
     }
 
     public static void sendMessageToPlayer(DBPlayer dbp, String msg) {
-        dbp.getPlayer().sendMessage(chatColors.get("DEFAULT") + msg);
+        if (dbp.isOnline())
+            dbp.getPlayer().sendMessage(chatColors.get("DEFAULT") + msg);
     }
 
     public static void sendMessageToPlayerSuccess(DBPlayer dbp, String msg) {
-        dbp.getPlayer().sendMessage(chatColors.get("SUCCESS") + msg);
+        if (dbp.isOnline())
+            dbp.getPlayer().sendMessage(chatColors.get("SUCCESS") + msg);
     }
 
     public static void sendMessageToPlayerError(DBPlayer dbp, String msg) {
-        dbp.getPlayer().sendMessage(chatColors.get("ERROR") + msg);
+        if (dbp.isOnline())
+            dbp.getPlayer().sendMessage(chatColors.get("ERROR") + msg);
     }
 
     public static void sendMessageToPlayerInvalid(DBPlayer dbp, String msg) {
-        dbp.getPlayer().sendMessage(chatColors.get("ERROR") + "Invalid command: " + msg);
+        if (dbp.isOnline())
+            dbp.getPlayer().sendMessage(chatColors.get("ERROR") + "Invalid command: " + msg);
     }
 
     public static void sendMessageToPlayerInfo(DBPlayer dbp, String msg) {
-        dbp.getPlayer().sendMessage(chatColors.get("INFO") + msg);
+        if (dbp.isOnline())
+            dbp.getPlayer().sendMessage(chatColors.get("INFO") + msg);
     }
 
     /**

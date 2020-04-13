@@ -7,9 +7,7 @@
 package com.spleefleague.core.listener;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.PlayerInfoData;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
@@ -40,16 +38,17 @@ public class ConnectionListener implements Listener {
     
     @EventHandler
     public void onPlayerLogin(PlayerLoginEvent e) {
-        Infraction infraction = Infraction.getActive(e.getPlayer().getUniqueId());
+        Infraction infraction = Infraction.getMostRecent(e.getPlayer().getUniqueId(), Lists.newArrayList(Infraction.Type.BAN, Infraction.Type.TEMPBAN, Infraction.Type.UNBAN));
+        Infraction reasoning = Infraction.getMostRecent(e.getPlayer().getUniqueId(), Lists.newArrayList(Infraction.Type.BAN, Infraction.Type.TEMPBAN, Infraction.Type.UNBAN, Infraction.Type.WARNING));
         
         if (infraction != null) {
             switch (infraction.getType()) {
                 case BAN:
-                    e.disallow(PlayerLoginEvent.Result.KICK_BANNED, "You are banned!");
+                    e.disallow(PlayerLoginEvent.Result.KICK_BANNED, "You are banned!" + "\n" + reasoning.getReason());
                     return;
                 case TEMPBAN:
-                    if (infraction.getRemainingTime() > 0) {
-                        e.disallow(PlayerLoginEvent.Result.KICK_BANNED, "You are tempbanned! " + infraction.getRemainingTimeString());
+                    if (!infraction.isExpired()) {
+                        e.disallow(PlayerLoginEvent.Result.KICK_BANNED, "You are temporarily banned! " + infraction.getRemainingTimeString() + "\n" + reasoning.getReason());
                     }
                     return;
             }

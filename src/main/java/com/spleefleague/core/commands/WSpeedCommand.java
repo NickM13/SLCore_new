@@ -30,7 +30,7 @@ public class WSpeedCommand extends CommandTemplate {
         success(sender, "Walk speed set to " + f);
     }
     
-    @CommandAnnotation
+    @CommandAnnotation(minRank="SENIOR_MODERATOR")
     public void wspeed(CorePlayer sender, CorePlayer cp, Double f) {
         f /= 10.;
         cp.getPlayer().setWalkSpeed(f.floatValue());
@@ -38,7 +38,7 @@ public class WSpeedCommand extends CommandTemplate {
         success(sender, "Walk speed of " + cp.getDisplayName() + " set to " + f);
     }
     
-    @CommandAnnotation
+    @CommandAnnotation(minRank="SENIOR_MODERATOR")
     public void wspeed(CorePlayer sender, CorePlayer cp, @LiteralArg(value="reset") String l) {
         wspeed(sender, cp, 2.);
     }

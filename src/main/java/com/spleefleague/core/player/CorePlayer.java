@@ -240,6 +240,26 @@ public class CorePlayer extends DBPlayer {
         return afk;
     }
     
+    /**
+     * Returns 0 if not muted
+     * 1 if public muted
+     * 2 if secret muted
+     * 
+     * @return 
+     */
+    public int isMuted() {
+        Infraction lastMute = Infraction.getMostRecent(getUniqueId(), Lists.newArrayList(Infraction.Type.MUTE_SECRET, Infraction.Type.MUTE_PUBLIC));
+        
+        if (lastMute != null && !lastMute.isExpired()) {
+            switch (lastMute.getType()) {
+                case MUTE_PUBLIC: return 1;
+                case MUTE_SECRET: return 2;
+                default: break;
+            }
+        }
+        return 0;
+    }
+    
     public void setSelectedItem(String type, String id) {
         if (selectedItems.containsKey(type) &&
                 heldItem == VendorItem.getVendorItem(type, selectedItems.get(type))) {
@@ -559,7 +579,11 @@ public class CorePlayer extends DBPlayer {
     }
 
     public Location getLocation() {
-        return getPlayer().getLocation();
+        if (isOnline()) {
+            return this.lastLocation;
+        } else {
+            return getPlayer().getLocation();
+        }
     }
 
     public void saveLastLocation() {
@@ -740,35 +764,21 @@ public class CorePlayer extends DBPlayer {
     }
 
     public Infraction checkBan() {
-        Infraction latestban = null;
-
-        for (Infraction i : Infraction.getAll(getUniqueId())) {
-            if (i.getType().equals(Infraction.Type.BAN)) {
-                if (latestban == null
-                        || latestban.getExpireTime() < i.getExpireTime()) {
-                    latestban = i;
-                }
-            } else if (i.getType().equals(Infraction.Type.TEMPBAN)) {
-                if (latestban == null
-                        || latestban.getExpireTime() < i.getExpireTime()) {
-                    latestban = i;
-                }
-            }
-        }
-
-        if (latestban == null) {
+        Infraction latestban = Infraction.getMostRecent(getUniqueId(), Lists.newArrayList(Infraction.Type.BAN, Infraction.Type.TEMPBAN, Infraction.Type.UNBAN));
+        
+        if (latestban == null)
             return null;
-        }
-
-        for (Infraction i : Infraction.getAll(getUniqueId())) {
-            if (i.getType().equals(Infraction.Type.UNBAN)) {
-                if (i.getExpireTime() > latestban.getExpireTime()) {
+        
+        switch (latestban.getType()) {
+            case UNBAN:
+                if (latestban.isExpired())
                     return null;
-                }
-            }
+            case BAN:
+                return latestban;
+            case TEMPBAN:
+            default:
+                return null;
         }
-
-        return latestban;
     }
     
 }

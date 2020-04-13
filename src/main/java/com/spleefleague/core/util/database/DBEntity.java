@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bson.Document;
@@ -56,6 +57,8 @@ public class DBEntity {
                                     break;
                                 }
                             }
+                        } else if (UUID.class.isAssignableFrom(f.getType())) {
+                            doc.append(fieldname, ((UUID) f.get(this)).toString());
                         } else if (DBEntity.class.isAssignableFrom(f.getType())) {
                             DBEntity dbe = (DBEntity) f.get(this);
                             doc.append(fieldname, dbe.save());
@@ -116,6 +119,8 @@ public class DBEntity {
                                     break;
                                 }
                             }
+                        } else if (f.getType().equals(UUID.class)) {
+                            obj = UUID.fromString(doc.get(fieldname, String.class));
                         } else if (DBEntity.class.isAssignableFrom(f.getType())) {
                             obj = f.getType().newInstance();
                             ((DBEntity) obj).load(doc.get(fieldname, Document.class));

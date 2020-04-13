@@ -28,7 +28,7 @@ public class FlyCommand extends CommandTemplate {
         fly(sender, sender);
     }
     
-    @CommandAnnotation
+    @CommandAnnotation(minRank="SENIOR_MODERATOR")
     public void fly(CorePlayer sender, CorePlayer cp) {
         cp.getPlayer().setAllowFlight(!cp.getPlayer().getAllowFlight());
         if (cp.getPlayer().getAllowFlight()) {

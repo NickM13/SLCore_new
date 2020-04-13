@@ -164,14 +164,25 @@ public class CommandTemplate extends Command {
         return location;
     }
     
+    private boolean isValidCorePlayer(CommandSender cs, CorePlayer sender, CorePlayer cp, CorePlayerArg cpa) {
+        if (cp == null) return false;
+        if (cpa == null) return true;
+        if ((!cpa.allowOffline() && !cp.isOnline())
+                || (!cpa.allowSelf() && sender != null && sender.equals(cp))) {
+            cs.sendMessage(Chat.ERROR + "Invalid player");
+            return false;
+        }
+        return true;
+    }
+    
     private boolean isNumInbounds(CommandSender cs, Double num, NumberArg na) {
-        if (num == null) return true;
-        if (na == null) return false;
+        if (num == null) return false;
+        if (na == null) return true;
         if (num < na.minValue() || num > na.maxValue()) {
             cs.sendMessage(Chat.ERROR + "Expected number between " + na.minValue() + " and " + na.maxValue());
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
     
     private enum SortType {
@@ -536,7 +547,8 @@ public class CommandTemplate extends Command {
                             continue;
                         }
                         if (paramClass.equals(CorePlayer.class) &&
-                                (obj = Core.getInstance().getPlayers().get(arg)) != null) {
+                                (obj = Core.getInstance().getPlayers().getOffline(arg)) != null) {
+                            invalidArg = !isValidCorePlayer(cs, cp, (CorePlayer) obj, param.getAnnotation(CorePlayerArg.class));
                             params.add(obj);
                             ai++;
                             continue;
@@ -555,15 +567,15 @@ public class CommandTemplate extends Command {
                         }
                         if (paramClass.equals(Integer.class) &&
                                 (obj = toInt(arg)) != null) {
+                            invalidArg = !isNumInbounds(cs, ((Integer) obj).doubleValue(), param.getAnnotation(NumberArg.class));
                             params.add(obj);
-                            invalidArg = isNumInbounds(cs, ((Integer) obj).doubleValue(), param.getAnnotation(NumberArg.class));
                             ai++;
                             continue;
                         }
                         if (paramClass.equals(Double.class)
                                 && (obj = toDouble(arg)) != null) {
+                            invalidArg = !isNumInbounds(cs, (Double) obj, param.getAnnotation(NumberArg.class));
                             params.add(obj);
-                            invalidArg = isNumInbounds(cs, (Double) obj, param.getAnnotation(NumberArg.class));
                             ai++;
                             continue;
                         }
@@ -741,7 +753,10 @@ public class CommandTemplate extends Command {
                     continue;
                 }
                 if (paramClass.equals(CorePlayer.class)) {
-                    invalidArg = ((obj = Core.getInstance().getPlayers().get(arg)) == null);
+                    invalidArg = ((obj = Core.getInstance().getPlayers().getOffline(arg)) == null);
+                    if (!invalidArg) {
+                        invalidArg = !isValidCorePlayer(cs, cp, (CorePlayer) obj, param.getAnnotation(CorePlayerArg.class));
+                    }
                     ai++;
                     continue;
                 }
@@ -757,13 +772,13 @@ public class CommandTemplate extends Command {
                 }
                 if (paramClass.equals(Integer.class)) {
                     invalidArg = ((obj = toInt(arg)) == null);
-                    invalidArg = isNumInbounds(cs, ((Integer) obj).doubleValue(), param.getAnnotation(NumberArg.class));
+                    invalidArg = !isNumInbounds(cs, ((Integer) obj).doubleValue(), param.getAnnotation(NumberArg.class));
                     ai++;
                     continue;
                 }
                 if (paramClass.equals(Double.class)) {
                     invalidArg = ((obj = toDouble(arg)) == null);
-                    invalidArg = isNumInbounds(cs, (Double) obj, param.getAnnotation(NumberArg.class));
+                    invalidArg = !isNumInbounds(cs, (Double) obj, param.getAnnotation(NumberArg.class));
                     ai++;
                     continue;
                 }
@@ -811,11 +826,19 @@ public class CommandTemplate extends Command {
                 } else if (currParam.getType().equals(CorePlayer.class) ||
                         currParam.getType().equals(Player.class) ||
                         currParam.getType().equals(OfflinePlayer.class)) {
+                    CorePlayerArg cpa = (CorePlayerArg) currParam.getType().getAnnotation(CorePlayerArg.class);
                     for (CorePlayer cp2 : Core.getInstance().getPlayers().getOnline()) {
+                        if (cp != null && cpa != null
+                                && !cpa.allowSelf()
+                                && cp2.getName().equalsIgnoreCase(cp.getName())) {
+                            
+                        }
                         addOption(options, cp2.getName(), lastArg, false);
                     }
-                    addOption(options, "@p", lastArg, false);
-                    addOption(options, "@s", lastArg, false);
+                    if (cpa == null || cpa.allowSelf()) {
+                        addOption(options, "@p", lastArg, false);
+                        addOption(options, "@s", lastArg, false);
+                    }
                 } else if (currParam.getType().equals(List.class)) {
                     addOption(options, "@a", lastArg, false);
                     addOption(options, "@e", lastArg, false);

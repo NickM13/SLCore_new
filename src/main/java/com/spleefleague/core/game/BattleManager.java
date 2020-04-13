@@ -79,7 +79,6 @@ public class BattleManager<B extends Battle> implements QueueContainer {
                         bit.remove();
                     } else {
                         b.updateScoreboard();
-                        b.updateField();
                         b.doCountdown();
                     }
                 }
@@ -92,6 +91,7 @@ public class BattleManager<B extends Battle> implements QueueContainer {
                 b = bit.next();
                 if (b != null) {
                     b.updateExperience();
+                    b.updateField();
                 }
             }
         }, 0L, 2L);

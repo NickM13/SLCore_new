@@ -33,7 +33,9 @@ public class CancelAllCommand extends CommandTemplate {
         for (CorePlayer cp : Core.getInstance().getPlayers().getAll()) {
             battles.add(CorePlugin.getBattleGlobal(cp.getPlayer()));
         }
-        battles.forEach(b -> b.cancel());
+        for (Battle b : battles) {
+            b.cancel();
+        }
         success(sender, "Cancelled all battles");
     }
 

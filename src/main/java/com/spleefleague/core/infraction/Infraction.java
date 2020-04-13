@@ -25,16 +25,21 @@ public class Infraction {
     private static MongoCollection<Document> collection;
     private static HashSet<Infraction> infractions = new HashSet<>();
     //private static HashSet<Infraction> infractionsNew = new HashSet<>();
-    private static HashMap<UUID, Infraction> infractionsActive = new HashMap<>();
+    private static HashMap<UUID, HashMap<Type, Infraction>> infractionsActive = new HashMap<>();
     
     public static void init() {
         collection = Core.getInstance().getPluginDB().getCollection("Infractions");
         collection.find().iterator().forEachRemaining(doc -> {
             Infraction infraction = new Infraction(doc);
+            Type type = infraction.getType();
+            UUID uuid = UUID.fromString(doc.get("uuid", String.class));
             infractions.add(infraction);
-            if (infractionsActive.get(UUID.fromString(doc.get("uuid", String.class))) == null ||
-                    infractionsActive.get(UUID.fromString(doc.get("uuid", String.class))).getTime() < infraction.getTime()) {
-                infractionsActive.put(UUID.fromString(doc.get("uuid", String.class)), infraction);
+            if (!infractionsActive.containsKey(uuid)) {
+                infractionsActive.put(uuid, new HashMap<>());
+            }
+            if (!infractionsActive.get(uuid).containsKey(type) ||
+                    infractionsActive.get(uuid).get(type).getTime() < infraction.getTime()) {
+                infractionsActive.get(uuid).put(type, infraction);
             }
         });
     }
@@ -47,7 +52,9 @@ public class Infraction {
         KICK("Kick", ChatColor.GOLD),
         TEMPBAN("Tempban", ChatColor.RED),
         BAN("Ban", ChatColor.DARK_RED),
-        UNBAN("Unban", ChatColor.GREEN);
+        UNBAN("Unban", ChatColor.GREEN),
+        MUTE_PUBLIC("PubMute", ChatColor.GRAY),
+        MUTE_SECRET("SecMute", ChatColor.BLACK);
 
         private final String name;
         private final ChatColor color;
@@ -93,12 +100,27 @@ public class Infraction {
     }
     
     public static void create(Infraction i) {
-        infractionsActive.put(i.uuid, i);
+        if (!infractionsActive.containsKey(i.uuid)) {
+            infractionsActive.put(i.uuid, new HashMap<>());
+        }
+        infractionsActive.get(i.uuid).put(i.type, i);
         infractions.add(i);
         collection.insertOne(i.save());
     }
-    public static Infraction getActive(UUID uniqueId) {
-        return infractionsActive.get(uniqueId);
+    public static Infraction getActive(UUID uniqueId, Type type) {
+        if (!infractionsActive.containsKey(uniqueId)) return null;
+        return infractionsActive.get(uniqueId).get(type);
+    }
+    public static Infraction getMostRecent(UUID uniqueId, List<Type> types) {
+        Infraction recent = null, infraction;
+        for (Type type : types) {
+            infraction = getActive(uniqueId, type);
+            if (recent == null
+                    || infraction.time > recent.time) {
+                recent = infraction;
+            }
+        }
+        return recent;
     }
     public static List<Infraction> getAll(UUID uniqueId) {
         List<Infraction> list = new ArrayList<>();
@@ -144,6 +166,9 @@ public class Infraction {
     }
     public long getExpireTime() {
         return time + duration;
+    }
+    public boolean isExpired() {
+        return getRemainingTime() < 0;
     }
     public long getRemainingTime() {
         return (getExpireTime() - System.currentTimeMillis() + 500) / 1000;

@@ -104,6 +104,9 @@ public class Battle<P extends DBPlayer, A extends Arena> {
     public void addBattler(DBPlayer dbp) {
         P p = (P) plugin.getPlayers().get(dbp);
         players.add(p);
+        gameWorld.addPlayer(dbp.getPlayer(), BattleState.BATTLER);
+        chatGroup.addPlayer(dbp);
+        p.savePregameState();
     }
     
     public void removeBattler(DBPlayer dbp) {

@@ -427,6 +427,9 @@ public class GameWorld {
                 }, 8L);
     }
     
+    public boolean isBlockSolid(BlockPosition pos) {
+        return fakeBlocks.containsKey(pos) && !fakeBlocks.get(pos).getBlockData().getMaterial().equals(Material.AIR);
+    }
     public void setBlock(BlockPosition pos, BlockData blockData) {
         setBlock(pos, blockData, false);
     }

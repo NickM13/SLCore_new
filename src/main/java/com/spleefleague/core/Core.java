@@ -17,7 +17,7 @@ import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.chat.ChatChannel;
 import com.spleefleague.core.chat.ChatGroup;
 import com.spleefleague.core.chat.ticket.Ticket;
-import com.spleefleague.core.chat.ticket.TicketManager;
+import com.spleefleague.core.chat.ticket.Tickets;
 import com.spleefleague.core.command.CommandManager;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.credits.Credits;
@@ -80,9 +80,6 @@ public class Core extends CorePlugin<CorePlayer> {
     // Command manager, contains list of all commands
     // and registers them to the server
     private CommandManager commandManager;
-
-    // Manager for tickets (issues) players are having
-    private TicketManager ticketManager;
     
     // For packet managing
     private static ProtocolManager protocolManager;
@@ -101,6 +98,7 @@ public class Core extends CorePlugin<CorePlayer> {
         Infraction.init();
         KeyItem.init();
         Vendor.init();
+        Tickets.init();
         InventoryMenuAPI.init();
         CorePlayerOptions.init();
         
@@ -115,7 +113,6 @@ public class Core extends CorePlugin<CorePlayer> {
         // Initialize manager
         playerManager = new PlayerManager<>(this, CorePlayer.class, getPluginDB().getCollection("Players"));
         commandManager = new CommandManager();
-        ticketManager = new TicketManager();
 
         // Initialize various things
         initQueues();
@@ -146,6 +143,7 @@ public class Core extends CorePlugin<CorePlayer> {
         Infraction.close();
         KeyItem.close();
         Vendor.close();
+        Tickets.close();
         Leaderboard.close();
         qrunnable.close();
         playerManager.close();
@@ -437,16 +435,51 @@ public class Core extends CorePlugin<CorePlayer> {
         commandManager.flushRegisters();
     }
 
-    public void openTicket(CorePlayer player, String issue) {
-        ticketManager.createTicket(player, issue);
-    }
-
-    public Ticket getTicket(CorePlayer player) {
-        return ticketManager.getTicket(player);
-    }
-
     public static String getChatPrefix() {
         return Chat.BRACE + "[" + Chat.PLUGIN_PREFIX + "SpleefLeague" + Chat.BRACE + "] " + Chat.DEFAULT;
+    }
+    
+    public void muteSecret(String sender, OfflinePlayer target, long millis, String reason) {
+        Infraction infraction = new Infraction();
+        infraction.setUuid(target.getUniqueId())
+                .setPunisher(sender)
+                .setType(Infraction.Type.MUTE_SECRET)
+                .setDuration(millis)
+                .setReason(reason);
+        Infraction.create(infraction);
+        
+        Core.getInstance().sendMessage(ChatChannel.getChannel(ChatChannel.Channel.STAFF),
+                "Secretly muted player " + target.getName() + " for " + infraction.getRemainingTimeString() + (reason.length() > 0 ? (": " + reason) : ""));
+    }
+    public void mutePublic(String sender, OfflinePlayer target, long millis, String reason) {
+        Infraction infraction = new Infraction();
+        infraction.setUuid(target.getUniqueId())
+                .setPunisher(sender)
+                .setType(Infraction.Type.MUTE_PUBLIC)
+                .setDuration(millis)
+                .setReason(reason);
+        Infraction.create(infraction);
+        
+        if (target.isOnline()) {
+            Core.sendMessageToPlayer(Core.getInstance().getPlayers().get(target.getPlayer()), "Muted by " + sender + " for " + infraction.getRemainingTimeString() + ": " + reason);
+        }
+        Core.getInstance().sendMessage(ChatChannel.getChannel(ChatChannel.Channel.STAFF),
+                "Public muted player " + target.getName() + " for " + infraction.getRemainingTimeString() + (reason.length() > 0 ? (": " + reason) : ""));
+    }
+    public void unmute(String sender, OfflinePlayer target, String reason) {
+        Infraction infraction = new Infraction();
+        infraction.setUuid(target.getUniqueId())
+                .setPunisher(sender)
+                .setType(Infraction.Type.MUTE_SECRET)
+                .setDuration(0)
+                .setReason(reason);
+        Infraction.create(infraction);
+        
+        if (target.isOnline()) {
+            Core.sendMessageToPlayer(Core.getInstance().getPlayers().get(target.getPlayer()), "You've been unmuted by " + sender);
+        }
+        Core.getInstance().sendMessage(ChatChannel.getChannel(ChatChannel.Channel.STAFF),
+                "Unmuted player " + target.getName() + (reason.length() > 0 ? (": " + reason) : ""));
     }
 
     public void tempban(String sender, OfflinePlayer target, long millis, String reason) {
@@ -459,6 +492,7 @@ public class Core extends CorePlugin<CorePlayer> {
         Infraction.create(infraction);
 
         if (target.isOnline()) {
+            ((Player) target).getLocation().getWorld().strikeLightning(((Player) target).getLocation());
             ((Player) target).kickPlayer("TempBan for " + infraction.getRemainingTimeString() + ": " + reason + "!");
         }
         Core.getInstance().sendMessage(ChatChannel.getChannel(ChatChannel.Channel.STAFF),

@@ -15,7 +15,7 @@ import org.bukkit.Material;
  */
 public class HatMenu {
     
-    private static InventoryMenuItem menuItem = null;
+    protected static InventoryMenuItem menuItem = null;
     
     public static InventoryMenuItem getItem() {
         if (menuItem == null) {

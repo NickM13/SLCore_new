@@ -92,6 +92,11 @@ public class PlayerManager <T extends DBPlayer> implements Listener {
         }
         return null;
     }
+    public T getOffline(String username) {
+        T p = get(username);
+        if (p != null) return p;
+        return getOffline(Bukkit.getOfflinePlayer(username).getUniqueId());
+    }
     
     public Collection<T> getAll() {
         return playerList.values();

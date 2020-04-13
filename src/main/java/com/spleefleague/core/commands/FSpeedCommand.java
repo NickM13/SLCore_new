@@ -31,7 +31,7 @@ public class FSpeedCommand extends CommandTemplate {
         success(sender, "Fly speed set to " + f);
     }
     
-    @CommandAnnotation
+    @CommandAnnotation(minRank="SENIOR_MODERATOR")
     public void fspeed(CorePlayer sender, CorePlayer cp, @NumberArg(minValue=-10, maxValue=10) Double f) {
         f /= 10.;
         cp.getPlayer().setFlySpeed(f.floatValue());
@@ -39,7 +39,7 @@ public class FSpeedCommand extends CommandTemplate {
         success(sender, "Fly speed of " + cp.getDisplayName() + " set to " + f);
     }
     
-    @CommandAnnotation
+    @CommandAnnotation(minRank="SENIOR_MODERATOR")
     public void fspeed(CorePlayer sender, CorePlayer cp, @LiteralArg(value="reset") String l) {
         fspeed(sender, cp, 2.);
     }

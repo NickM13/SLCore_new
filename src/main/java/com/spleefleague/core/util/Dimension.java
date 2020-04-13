@@ -67,6 +67,13 @@ public class Dimension implements DBVariable<Document> {
         return high;
     }
     
+    public Point getCenter() {
+        return new Point(
+                low.x + (high.x - low.x) / 2,
+                low.y + (high.y - low.y) / 2,
+                low.z + (high.z - low.z) / 2);
+    }
+    
     // Check if point is contained between lower and upper bounds
     public boolean isContained(Point p) {
         return (p.x >= low.x && p.x <= high.x &&
@@ -85,9 +92,18 @@ public class Dimension implements DBVariable<Document> {
         dim.high.z += z;
         return dim;
     }
-    
     public Dimension expand(double v) {
         return expand(v, v, v);
+    }
+    
+    public void combine(Dimension dim) {
+        low.x = Math.min(low.x, dim.low.x);
+        low.y = Math.min(low.y, dim.low.y);
+        low.z = Math.min(low.z, dim.low.z);
+        
+        high.x = Math.min(high.x, dim.high.x);
+        high.y = Math.min(high.y, dim.high.y);
+        high.z = Math.min(high.z, dim.high.z);
     }
 
     @Override

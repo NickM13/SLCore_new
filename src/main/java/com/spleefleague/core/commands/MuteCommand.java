@@ -6,13 +6,16 @@
 
 package com.spleefleague.core.commands;
 
+import com.spleefleague.core.Core;
 import com.spleefleague.core.command.CommandAnnotation;
-import com.spleefleague.core.command.HelperArg;
-import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.command.CommandTemplate;
-import com.spleefleague.core.error.CoreError;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
+import com.spleefleague.core.util.TimeUtils;
+import javax.annotation.Nullable;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 
 /**
  * @author NickM13
@@ -26,14 +29,47 @@ public class MuteCommand extends CommandTemplate {
     @CommandAnnotation
     public void mutePublic(CorePlayer sender,
             @LiteralArg(value="public") String l,
-            CorePlayer receiver,
-            @HelperArg(value="[hours]") Double time) {
-        error(sender, CoreError.SETUP);
+            OfflinePlayer op,
+            String time,
+            @Nullable String reason) {
+        Core.getInstance().mutePublic(sender.getName(), op, TimeUtils.toMillis(time), reason == null ? "" : reason);
+    }
+    @CommandAnnotation
+    public void mutePublic(CommandSender sender,
+            @LiteralArg(value="public") String l,
+            OfflinePlayer op,
+            String time,
+            @Nullable String reason) {
+        Core.getInstance().mutePublic(sender.getName(), op, TimeUtils.toMillis(time), reason == null ? "" : reason);
     }
     
+    /**
+     * Secret mute doesn't let the player know that
+     * they're muted (their messages appear to still
+     * send for them)
+     * 
+     * @param sender
+     * @param l
+     * @param op
+     * @param time
+     * @param reason
+     */
+    
     @CommandAnnotation
-    public void muteSecret(CorePlayer sender) {
-        
+    public void muteSecret(CorePlayer sender,
+            @LiteralArg(value="secret") String l,
+            OfflinePlayer op,
+            String time,
+            @Nullable String reason) {
+        Core.getInstance().muteSecret(sender.getName(), op, TimeUtils.toMillis(time), reason == null ? "" : reason);
+    }
+    @CommandAnnotation
+    public void muteSecret(CommandSender sender,
+            @LiteralArg(value="secret") String l,
+            OfflinePlayer op,
+            String time,
+            @Nullable String reason) {
+        Core.getInstance().muteSecret(sender.getName(), op, TimeUtils.toMillis(time), reason == null ? "" : reason);
     }
     
 }

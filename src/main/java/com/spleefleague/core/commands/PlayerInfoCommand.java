@@ -6,6 +6,7 @@
 
 package com.spleefleague.core.commands;
 
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
 import com.spleefleague.core.Core;
 import com.spleefleague.core.command.CommandAnnotation;
@@ -55,6 +56,8 @@ public class PlayerInfoCommand extends CommandTemplate {
                 Chat.DEFAULT + cp.getRank().getColor() + cp.getRank().getDisplayNameUnformatted());
         strings.add(Chat.BRACE + "State: " +
                 Chat.DEFAULT + getState(cp));
+        strings.add(Chat.BRACE + "Muted: " +
+                Chat.DEFAULT + getMuted(cp));
         if (!cp.isOnline())
             strings.add(Chat.BRACE + "Last seen: " +
                     Chat.DEFAULT + getLastSeen(cp));
@@ -77,11 +80,19 @@ public class PlayerInfoCommand extends CommandTemplate {
         sender.sendMessage(mergeString);
     }
     
+    private String getMuted(CorePlayer cp) {
+        switch (cp.isMuted()) {
+            case 1: return "Yes";
+            case 2: return "Yes (Secretly)";
+            case 0: default: return "No";
+        }
+    }
+    
     private String getState(CorePlayer cp) {
-        Infraction inf = Infraction.getActive(UUID.fromString(cp.getUuid()));
         String state = "";
         
         if (!cp.isOnline()) {
+            Infraction inf = Infraction.getMostRecent(UUID.fromString(cp.getUuid()), Lists.newArrayList(Infraction.Type.values()));
             if (inf == null) {
                 state = "Offline";
             } else {

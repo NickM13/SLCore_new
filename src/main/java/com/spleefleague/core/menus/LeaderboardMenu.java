@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public class LeaderboardMenu {
     
-    private static InventoryMenuItem menuItem = null;
+    protected static InventoryMenuItem menuItem = null;
     
     public static InventoryMenuItem getItem() {
         if (menuItem == null) {
